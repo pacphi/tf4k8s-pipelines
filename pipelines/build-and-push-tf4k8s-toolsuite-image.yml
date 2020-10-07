@@ -1,0 +1,41 @@
+resources:
+# The repo with our Dockerfile
+- name: tf4k8s-toolsuite-repo
+  type: git
+  icon: github
+  source:
+    uri: https://github.com/pacphi/tf4k8s.git
+    branch: master
+
+# Where we will push the image
+- name: tf4k8s-toolsuite-image
+  type: registry-image
+  icon: docker
+  source:
+    repository: ((image-repo-name))/tf4k8s-toolsuite
+    username: ((registry-username))
+    password: ((registry-password))
+
+jobs:
+- name: build-and-push
+  plan:
+  - get: tf4k8s-toolsuite-repo
+  - task: build-task-image
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: vito/oci-build-task
+      inputs:
+      - name: tf4k8s-toolsuite-repo
+      outputs:
+      - name: image
+      params:
+        CONTEXT: tf4k8s-toolsuite-repo/bom
+      run:
+        path: build
+  - put: tf4k8s-toolsuite-image
+    params:
+      image: image/image.tar
