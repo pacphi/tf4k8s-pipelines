@@ -30,3 +30,6 @@ override.tf.json
 
 # Code
 .history/
+
+# Local environment
+.concourse-local
