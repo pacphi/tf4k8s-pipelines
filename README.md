@@ -12,6 +12,30 @@ This script uses [Docker Compose](https://docs.docker.com/compose/install/) to l
 ./bin/launch-local-concourse-instance.sh
 ```
 
+#### Lifecycle management
+
+```
+cd .concourse-local
+```
+
+##### Stop 
+
+```
+docker-compose stop
+```
+
+##### Restart
+
+```
+docker-compose restart -d
+```
+
+##### Teardown
+
+```
+docker-compose down
+```
+
 ### Download CLI from Concourse instance
 
 Download a version of the [fly](https://concourse-ci.org/fly.html) CLI from a known Concourse instance
