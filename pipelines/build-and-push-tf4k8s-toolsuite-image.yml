@@ -20,6 +20,7 @@ jobs:
 - name: build-and-push
   plan:
   - get: tf4k8s-toolsuite-repo
+    trigger: true
   - task: build-task-image
     privileged: true
     config:
