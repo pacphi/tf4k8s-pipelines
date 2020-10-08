@@ -33,3 +33,6 @@ override.tf.json
 
 # Local environment
 .concourse-local
+
+# Concourse
+ci/

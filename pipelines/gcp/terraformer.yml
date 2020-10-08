@@ -1,0 +1,72 @@
+resource_types:
+- name: terraform
+  type: docker-image
+  source:
+    repository: ljfranklin/terraform-resource
+    tag: latest
+
+- name: gcs-resource
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+    tag: latest
+
+resources:
+# The repo that contains Terraform
+- name: pipeline-repo
+  type: git
+  icon: github
+  source:
+    uri: https://github.com/papchi/tf4k8s-pipelines.git
+    branch: ((pipeline_repo_branch))
+
+- name: terraform-state
+  type: terraform
+  source:
+    backend_type: gcs
+    backend_config:
+      bucket: tf4k8s-pipelines-state
+      prefix: ((environment_name))/terraform/((gcp_storage_bucket_folder))
+      region: ((gcp_region))
+
+- name: credentials
+  type: gcs-resource
+  source:
+    bucket: ((credentials_bucket))
+    json_key: ((gcp_account_key_json))
+    regexp: gcp-credentials.json
+
+- name: terraform-vars
+  type: gcs-resource
+  source:
+    bucket: tf4k8s-pipelines-config
+    json_key: |
+      ((gcp_account_key_json))
+    regexp: ((environment_name))/terraform/((gcp_storage_bucket_folder))/terraform.tfvars
+
+jobs:
+- name: terraform-plan
+  plan:
+  - get: pipeline-repo
+  - get: credentials
+  - get: terraform-vars
+  - put: terraform-state
+    params:
+      env: 
+        GOOGLE_APPLICATION_CREDENTIALS: credentials
+      terraform_source: pipeline-repo/((environment_name))/terraform/((terraform_module))
+      plan_only: true
+      vars_file: terraform-vars 
+        
+- name: terraform-apply
+  plan:
+  - get: pipeline-repo
+    trigger: false
+    passed: [terraform-plan]
+  - get: terraform-state
+    trigger: false
+    passed: [terraform-plan]
+  - put: terraform-state
+    params:
+      terraform_source: pipeline-repo/((environment_name))/terraform/((terraform-module))
+      plan_run: true
