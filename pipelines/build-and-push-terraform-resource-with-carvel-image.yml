@@ -4,7 +4,7 @@ resources:
   type: git
   icon: github
   source:
-    uri: https://github.com/pacphi/tf4k8s.git
+    uri: https://github.com/pacphi/tf4k8s-pipelines.git
     branch: master
 
 # Where we will push the image
