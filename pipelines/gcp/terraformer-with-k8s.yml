@@ -37,6 +37,13 @@ resources:
     json_key: ((gcp_account_key_json))
     versioned_file: gcp-credentials.json
 
+- name: kubeconfig
+  type: gcs-resource
+  source:
+    bucket: s3cr3ts
+    json_key: ((gcp_account_key_json))
+    versioned_file: ((environment_name))/.kube/config
+
 - name: terraform-vars
   type: gcs-resource
   source:
@@ -50,6 +57,8 @@ jobs:
   - get: pipeline-repo
     trigger: true
   - get: gcloud-credentials
+    trigger: true
+  - get: kubeconfig
     trigger: true
   - get: terraform-vars
     trigger: true
@@ -65,6 +74,9 @@ jobs:
     trigger: false
     passed: [terraform-plan]
   - get: gcloud-credentials
+    trigger: false
+    passed: [terraform-plan]
+  - get: kubeconfig
     trigger: false
     passed: [terraform-plan]
   - get: terraform-state

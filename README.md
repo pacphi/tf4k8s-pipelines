@@ -169,6 +169,6 @@ fly -t <target> unpause-pipeline -p create-dns
 * Remember to synchronize your local copy of `t4k8s-pipelines-config` when an addition or update is made to one or more `terraform.tfvars` files.
   * Use `rclone sync` with caution. If you don't want to destroy previous state, use `rclone copy` instead.
 * When initializing a new folder underneath `t4k8s-pipelines-state` with `terraform.tfstate` make sure you skip deletions on `rclone sync`.
-* Remember that you have to ``git commit` and `git push` updates to the `tf4k8s-pipelines` git repository any time you add or update a `main.tf`.
+* Remember that you have to `git commit` and `git push` updates to the `tf4k8s-pipelines` git repository any time you make additions/updates to contents under a) `pipelines` or b) `terraform` directory trees before executing `fly set-pipeline`.
 * Remember to execute `fly set-pipeline` any time you a) adapt a pipeline definition or b) edit Concourse configuration
 * When using Concourse [terraform-resource](https://github.com/ljfranklin/terraform-resource), if you choose to include a directory or file, it is rooted from `/tmp/build/put`. 
