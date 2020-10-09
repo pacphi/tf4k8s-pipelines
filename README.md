@@ -149,7 +149,7 @@ Terraform modules are found in the [terraform](https://github.com/pacphi/tf4k8s-
 For convenience we'll want to create a `ci` sub-directory to collect all our configuration. And for practical purposes we'll want to create a subdirectory structure that mirrors what created earlier, so something like:
 
 ```
-+ tf4k8s-pipeline
++ tf4k8s-pipelines
   + ci
     + n00b
       + gcp
@@ -162,3 +162,13 @@ So putting this into practice, if we wanted to create a new Cloud DNS zone in Go
 fly -t <target> set-pipeline -p create-dns -c ./pipelines/gcp/terraformer.yml -l ./ci/n00b/gcp/create-dns.yml
 fly -t <target> unpause-pipeline -p create-dns
 ```
+
+#### Lessons learned
+
+* Store secrets like your cloud provider credentials or `./kube/config` (in file format) in a storage bucket.
+* Remember to synchronize your local copy of `t4k8s-pipelines-config` when an addition or update is made to one or more `terraform.tfvars` files.
+  * Use `rclone sync` with caution. If you don't want to destroy previous state, use `rclone copy` instead.
+* When initializing a new folder underneath `t4k8s-pipelines-state` with `terraform.tfstate` make sure you skip deletions on `rclone sync`.
+* Remember that you have to ``git commit` and `git push` updates to the `tf4k8s-pipelines` git repository any time you add or update a `main.tf`.
+* Remember to execute `fly set-pipeline` any time you a) adapt a pipeline definition or b) edit Concourse configuration
+* When using Concourse [terraform-resource](https://github.com/ljfranklin/terraform-resource), if you choose to include a directory or file, it is rooted from `/tmp/build/put`. 
