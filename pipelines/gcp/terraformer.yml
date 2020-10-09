@@ -64,10 +64,13 @@ jobs:
   - get: pipeline-repo
     trigger: false
     passed: [terraform-plan]
+  - get: credentials
+    trigger: false
+    passed: [terraform-plan]
   - get: terraform-state
     trigger: false
     passed: [terraform-plan]
   - put: terraform-state
     params:
-      terraform_source: pipeline-repo/terraform/((terraform-module))
+      terraform_source: pipeline-repo/terraform/((terraform_module))
       plan_run: true
