@@ -68,8 +68,18 @@ fly -t <target> unpause-pipeline -p build-and-push-tf4k8s-toolsuite-image
 * `<repo-name>` is a Container Image Repository prefix (e.g., harbor.envy.ironleg.me/library)
 * `<username>` and `<password>` is the username of an account with read/write privileges to a Container Image Registry
 
-### Working with tf4k8s-pipelines
+### Build and push terraform-resource-with-carvel image
 
+```
+fly -t <target> set-pipeline -p build-and-push-terraform-resource-with-carvel-image \
+    -c ./pipelines/build-and-push-terraform-resource-with-carvel-image.yml \
+    --var image-repo-name=<repo-name> \
+    --var registry-username=<user> \
+    --var registry-password=<password>
+fly -t <target> unpause-pipeline -p build-and-push-terraform-resource-with-carvel-image
+```
+
+### Working with tf4k8s-pipelines
 
 #### Setup 
 
