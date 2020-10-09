@@ -5,7 +5,7 @@ resources:
   icon: github
   source:
     uri: https://github.com/pacphi/tf4k8s-pipelines.git
-    branch: master
+    branch: main
 
 # Where we will push the image
 - name: terraform-resource-with-carvel-image
