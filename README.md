@@ -61,6 +61,7 @@ fly -t <target> set-pipeline -p build-and-push-tf4k8s-toolsuite-image \
     --var image-repo-name=<repo-name> \
     --var registry-username=<user> \
     --var registry-password=<password>
+fly -t <target> unpause-pipeline -p build-and-push-tf4k8s-toolsuite-image
 ```
 
 * `<target>` is the alias for the connection details to a Concourse instance
@@ -124,16 +125,18 @@ You could create a bucket with `rclone mkdir <target>:<bucket_name>`.
 
 And you could sync with `rclone sync -i /path/to/config <target>:<bucket_name>`
 
-For example, when working with Google Cloud Storage...
+For example, when working with Google Cloud Storage (GCS)...
 
 ```
-rclone mkdir fe-cphillipson:s3cr3ts
-rclone sync -i /home/cphillipson/Documents/development/pivotal/tanzu/s3cr3ts fe-cphillipson-gcs:s3cr3ts
-rclone mkdir fe-cphillipson-gcs:t4k8s-pipelines-config
-rclone sync -i /home/cphillipson/Documents/development/pivotal/tanzu/tf4k8s-pipelines-config fe-cphillipson-gcs:t4k8s-pipelines-config
-rclone mkdir fe-cphillipson-gcs:t4k8s-pipelines-state
-rclone sync -i /home/cphillipson/Documents/development/pivotal/tanzu/tf4k8s-pipelines-state fe-cphillipson-gcs:t4k8s-pipelines-state
+rclone mkdir fe-cphillipson-gcs:tf4k8s-pipelines-config
+rclone sync -i /home/cphillipson/Documents/development/pivotal/tanzu/tf4k8s-pipelines-config fe-cphillipson-gcs:tf4k8s-pipelines-config
+rclone mkdir fe-cphillipson-gcs:tf4k8s-pipelines-state
+rclone sync -i /home/cphillipson/Documents/development/pivotal/tanzu/tf4k8s-pipelines-state fe-cphillipson-gcs:tf4k8s-pipelines-state
+
+gsutil versioning set on gs://tf4k8s-pipelines-config
+gsutil versioning set on gs://tf4k8s-pipelines-state
 ```
+> * When working with GCS you must enable versioning on each bucket
 
 #### Flying pipelines
 
@@ -157,4 +160,5 @@ So putting this into practice, if we wanted to create a new Cloud DNS zone in Go
 
 ```
 fly -t <target> set-pipeline -p create-dns -c ./pipelines/gcp/terraformer.yml -l ./ci/n00b/gcp/create-dns.yml
+fly -t <target> unpause-pipeline -p create-dns
 ```

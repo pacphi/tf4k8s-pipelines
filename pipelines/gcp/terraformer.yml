@@ -23,40 +23,41 @@ resources:
 - name: terraform-state
   type: terraform
   source:
+    env_name: ((environment_name))
     backend_type: gcs
     backend_config:
       bucket: tf4k8s-pipelines-state
       prefix: ((environment_name))/terraform/((gcp_storage_bucket_folder))
-      region: ((gcp_region))
+      credentials: ((gcp_account_key_json))
 
 - name: credentials
   type: gcs-resource
   source:
-    bucket: ((credentials_bucket))
+    bucket: s3cr3ts
     json_key: ((gcp_account_key_json))
-    regexp: gcp-credentials.json
+    versioned_file: gcp-credentials.json
 
 - name: terraform-vars
   type: gcs-resource
   source:
     bucket: tf4k8s-pipelines-config
-    json_key: |
-      ((gcp_account_key_json))
-    regexp: ((environment_name))/terraform/((gcp_storage_bucket_folder))/terraform.tfvars
+    json_key: ((gcp_account_key_json))
+    versioned_file: ((environment_name))/terraform/((gcp_storage_bucket_folder))/terraform.tfvars
 
 jobs:
 - name: terraform-plan
   plan:
   - get: pipeline-repo
+    trigger: true
   - get: credentials
+    trigger: true
   - get: terraform-vars
+    trigger: true
   - put: terraform-state
     params:
-      env: 
-        GOOGLE_APPLICATION_CREDENTIALS: credentials
-      terraform_source: pipeline-repo/((environment_name))/terraform/((terraform_module))
+      terraform_source: pipeline-repo/terraform/((terraform_module))
       plan_only: true
-      vars_file: terraform-vars 
+      var_files: [terraform-vars/terraform.tfvars]
         
 - name: terraform-apply
   plan:
@@ -68,5 +69,5 @@ jobs:
     passed: [terraform-plan]
   - put: terraform-state
     params:
-      terraform_source: pipeline-repo/((environment_name))/terraform/((terraform-module))
+      terraform_source: pipeline-repo/terraform/((terraform-module))
       plan_run: true
