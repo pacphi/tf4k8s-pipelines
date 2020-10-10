@@ -179,6 +179,10 @@ For convenience we'll want to create a `ci` sub-directory to collect all our con
         - create-dns.yml
         - create-cluster.yml
         - create-certmanager.yml
+        - create-nginx-ingress-controller.yml
+        - create-external-dns.yml
+        - create-harbor.yml
+        - create-tas4k8s.yml
 ```
 
 So putting this into practice, if we wanted to create a new Cloud DNS zone in Google Cloud, we could execute 
@@ -195,6 +199,14 @@ fly -t <target> set-pipeline -p create-cluster -c ./pipelines/gcp/terraformer.ym
 fly -t <target> unpause-pipeline -p create-cluster
 fly -t <target> set-pipeline -p create-certmanager -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/create-certmanager.yml
 fly -t <target> unpause-pipeline -p create-certmanager
+fly -t <target> set-pipeline -p create-nginx-ingress-controller -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/create-nginx-ingress-controller.yml
+fly -t <target> unpause-pipeline -p create-nginx-ingress-controller
+fly -t <target> set-pipeline -p create-external-dns -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/create-external-dns.yml
+fly -t <target> unpause-pipeline -p create-external-dns
+fly -t <target> set-pipeline -p create-harbor -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/create-harbor.yml
+fly -t <target> unpause-pipeline -p create-harbor
+fly -t <target> set-pipeline -p create-tas4k8s -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/create-tas4k8s.yml
+fly -t <target> unpause-pipeline -p create-tas4k8s
 ```
 
 #### Lessons learned
