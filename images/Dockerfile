@@ -9,9 +9,9 @@ ENV KAPP_VERSION=0.34.0 \
     TF_K14S_PLUGIN_VERSION=0.6.0
 
 RUN apk add curl && \
-    mkdir -p $TF_PLUGIN_CACHE_DIR && \
+    mkdir -p $TF_PLUGIN_CACHE_DIR/registry.terraform.io/hashicorp/k14s/$TF_K14S_PLUGIN_VERSION && \
     curl -LO "https://github.com/k14s/terraform-provider-k14s/releases/download/v${TF_K14S_PLUGIN_VERSION}/terraform-provider-k14s-binaries.tgz" && \
-    tar xzvf terraform-provider-k14s-binaries.tgz -C $TF_PLUGIN_CACHE_DIR && \
+    tar xzvf terraform-provider-k14s-binaries.tgz -C $TF_PLUGIN_CACHE_DIR/registry.terraform.io/hashicorp/k14s/$TF_K14S_PLUGIN_VERSION && \
     rm -Rf terraform-provider-k14s-binaries.tgz && \
     wget -O ytt https://github.com/k14s/ytt/releases/download/v${YTT_VERSION}/ytt-linux-amd64 && \
     chmod +x ytt && \
