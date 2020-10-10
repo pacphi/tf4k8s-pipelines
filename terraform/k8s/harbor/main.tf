@@ -1,5 +1,5 @@
 module "harbor" {
-  source = "git::https://github.com/pacphi/tf4k8s.git//modules/harbor"
+  source = "git::https://github.com/pacphi/tf4k8s.git//modules/registry/harbor"
 
   domain = var.domain
   ingress = var.ingress
