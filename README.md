@@ -4,6 +4,8 @@ Sample GitOps pipelines that employ modules from tf4k8s to configure and deploy 
 
 ## Concourse
 
+![Concourse pipelines screenshot](concourse-pipelines.png?raw=true "Concourse pipelines screnshot")
+
 ### Spin up a local instance
 
 This script uses [Docker Compose](https://docs.docker.com/compose/install/) to launch a local [Concourse](https://concourse-ci.org/install.html) instance
