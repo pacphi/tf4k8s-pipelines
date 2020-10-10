@@ -49,7 +49,7 @@ variable "all_inbound" {
 }
 
 output "kubeconfig_contents" {
-  value = path(module.gke.path_to_kubeconfig)
+  value = file(module.gke.path_to_kubeconfig)
 }
 
 output "gke_cluster_name" {
