@@ -48,8 +48,8 @@ variable "all_inbound" {
   default = true
 }
 
-output "path_to_kubeconfig" {
-  value = module.gke.path_to_kubeconfig
+output "kubeconfig_contents" {
+  value = path(module.gke.path_to_kubeconfig)
 }
 
 output "gke_cluster_name" {

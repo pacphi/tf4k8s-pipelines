@@ -127,6 +127,16 @@ For example:
         - terraform.tfstate
 ```
 
+Lastly, you'll want to maintain secrets like a) your cloud credentials and b) `./kube/config`.  The following is an example structure when working with Google Cloud Platform and an environment named `n00b`.
+
+```
++ s3cr3ts
+  + n00b
+    + .kube
+      - config
+    - gcp-credentials.json
+```
+
 Use [rclone](https://rclone.org/) to synchronize your local configuration (and in some instances credentials) with a cloud storage provider of your choice.
 
 Execute `rclone config` to configure a target storage provider.
@@ -138,11 +148,14 @@ And you could sync with `rclone sync -i /path/to/config <target>:<bucket_name>`
 For example, when working with Google Cloud Storage (GCS)...
 
 ```
+rclone mkdir fe-cphillipson-gcs:s3cr3ts
+rclone sync -i /home/cphillipson/Documents/development/pivotal/tanzu/s3cr3ts fe-cphillipson-gcs:s3cr3ts
 rclone mkdir fe-cphillipson-gcs:tf4k8s-pipelines-config
 rclone sync -i /home/cphillipson/Documents/development/pivotal/tanzu/tf4k8s-pipelines-config fe-cphillipson-gcs:tf4k8s-pipelines-config
 rclone mkdir fe-cphillipson-gcs:tf4k8s-pipelines-state
 rclone sync -i /home/cphillipson/Documents/development/pivotal/tanzu/tf4k8s-pipelines-state fe-cphillipson-gcs:tf4k8s-pipelines-state
 
+gsutil versioning set on gs://s3cr3ts
 gsutil versioning set on gs://tf4k8s-pipelines-config
 gsutil versioning set on gs://tf4k8s-pipelines-state
 ```
@@ -164,6 +177,8 @@ For convenience we'll want to create a `ci` sub-directory to collect all our con
     + n00b
       + gcp
         - create-dns.yml
+        - create-cluster.yml
+        - create-certmanager.yml
 ```
 
 So putting this into practice, if we wanted to create a new Cloud DNS zone in Google Cloud, we could execute 
@@ -171,6 +186,15 @@ So putting this into practice, if we wanted to create a new Cloud DNS zone in Go
 ```
 fly -t <target> set-pipeline -p create-dns -c ./pipelines/gcp/terraformer.yml -l ./ci/n00b/gcp/create-dns.yml
 fly -t <target> unpause-pipeline -p create-dns
+```
+
+And other pipelines you might execute (in order) to bring up a TAS 3.0 instance
+
+```
+fly -t <target> set-pipeline -p create-cluster -c ./pipelines/gcp/terraformer.yml -l ./ci/n00b/gcp/create-cluster.yml
+fly -t <target> unpause-pipeline -p create-cluster
+fly -t <target> set-pipeline -p create-certmanager -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/create-certmanager.yml
+fly -t <target> unpause-pipeline -p create-certmanager
 ```
 
 #### Lessons learned
@@ -182,3 +206,6 @@ fly -t <target> unpause-pipeline -p create-dns
 * Remember that you have to `git commit` and `git push` updates to the `tf4k8s-pipelines` git repository any time you make additions/updates to contents under a) `pipelines` or b) `terraform` directory trees before executing `fly set-pipeline`.
 * Remember to execute `fly set-pipeline` any time you a) adapt a pipeline definition or b) edit Concourse configuration
 * When using Concourse [terraform-resource](https://github.com/ljfranklin/terraform-resource), if you choose to include a directory or file, it is rooted from `/tmp/build/put`. 
+* After creating a cluster you'll need to create a `./kube/config` in order to install subsequent capabilities via Helm and Carvel.
+  * Consult the output of a `create-cluster/terraform-apply` job/build.
+  * Copy the contents into `s3cr3ts/<env>/.kube/config` then execute an `rclone sync`.
