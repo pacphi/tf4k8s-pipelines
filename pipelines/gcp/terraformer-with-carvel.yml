@@ -2,8 +2,10 @@ resource_types:
 - name: terraform
   type: docker-image
   source:
-    repository: ljfranklin/terraform-resource
+    repository: ((terraform_resource_with_carvel_image))
     tag: latest
+    username: ((registry_username))
+    password: ((registry_password))
 
 - name: gcs-resource
   type: docker-image
@@ -55,7 +57,7 @@ jobs:
 - name: terraform-plan
   plan:
   - get: pipeline-repo
-    trigger: true
+    trigger: true     
   - get: gcloud-credentials
     trigger: true
   - get: kubeconfig
