@@ -83,11 +83,15 @@ jobs:
   - get: gcloud-credentials
     trigger: false
     passed: [terraform-apply]
+  - get: terraform-vars
+    trigger: false
   - get: terraform-state
     trigger: false
     passed: [terraform-apply]
   - put: terraform-state
     params:
       terraform_source: pipeline-repo/terraform/((terraform_module))
-      plan_run: true
+      action: destroy
+      var_files: [terraform-vars/terraform.tfvars]
+    get_params:
       action: destroy
