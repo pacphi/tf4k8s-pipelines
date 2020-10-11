@@ -55,21 +55,6 @@ fly login --target <target> --concourse-url https://<concourse_hostname> -u <use
 ```
 > Replace `<target>` with any name (this acts as an alias for the connection details to the Concourse instance).  Also replace `concourse_hostname>` with the hostname of the Concourse instance you wish to target. Lastly, replace `<username>` and `<password>` with valid, authorized credentials to the Concourse instance team. 
 
-### Build and push tf4k8s-toolsuite image
-
-```
-fly -t <target> set-pipeline -p build-and-push-tf4k8s-toolsuite-image \
-    -c ./pipelines/build-and-push-tf4k8s-toolsuite-image.yml \
-    --var image-repo-name=<repo-name> \
-    --var registry-username=<user> \
-    --var registry-password=<password>
-fly -t <target> unpause-pipeline -p build-and-push-tf4k8s-toolsuite-image
-```
-
-* `<target>` is the alias for the connection details to a Concourse instance
-* `<repo-name>` is a Container Image Repository prefix (e.g., harbor.envy.ironleg.me/library)
-* `<username>` and `<password>` is the username of an account with read/write privileges to a Container Image Registry
-
 ### Build and push terraform-resource-with-carvel image
 
 ```
@@ -80,6 +65,12 @@ fly -t <target> set-pipeline -p build-and-push-terraform-resource-with-carvel-im
     --var registry-password=<password>
 fly -t <target> unpause-pipeline -p build-and-push-terraform-resource-with-carvel-image
 ```
+
+* `<target>` is the alias for the connection details to a Concourse instance
+* `<repo-name>` is a Container Image Repository prefix (e.g., harbor.envy.ironleg.me/library)
+* `<username>` and `<password>` is the username of an account with read/write privileges to a Container Image Registry
+
+> A pre-built container image exists on DockerHub, here: [pacphi/terraform-resource-with-carvel](https://hub.docker.com/repository/docker/pacphi/terraform-resource-with-carvel).
 
 ### Working with tf4k8s-pipelines
 
@@ -117,19 +108,7 @@ For example:
         - terraform.tfvars
 ```
 
-Now we'll also want to manage state, so rinse-and-repeat the steps above to create a new root directory, environment subdirectory, and subdirectories for each module. Then, we'll want to place an empty `terraform.tfstate` file in each module sub-directory.
-
-For example:
-
-```
-+ tf4k8s-pipelines-state
-  + n00b
-    + gcp
-      + dns
-        - terraform.tfstate
-```
-
-Lastly, you'll want to maintain secrets like a) your cloud credentials and b) `./kube/config`.  The following is an example structure when working with Google Cloud Platform and an environment named `n00b`.
+Now we'll want to maintain secrets like a) cloud credentials and b) `./kube/config`.  The following is an example structure when working with Google Cloud Platform and an environment named `n00b`.
 
 ```
 + s3cr3ts
@@ -138,6 +117,8 @@ Lastly, you'll want to maintain secrets like a) your cloud credentials and b) `.
       - config
     - gcp-credentials.json
 ```
+
+Lastly we'll want to maintain state for each Terraform module.  We won't need a local directory, but we can use `rclone` to create a bucket.
 
 Use [rclone](https://rclone.org/) to synchronize your local configuration (and in some instances credentials) with a cloud storage provider of your choice.
 
@@ -155,7 +136,6 @@ rclone sync -i /home/cphillipson/Documents/development/pivotal/tanzu/s3cr3ts fe-
 rclone mkdir fe-cphillipson-gcs:tf4k8s-pipelines-config
 rclone sync -i /home/cphillipson/Documents/development/pivotal/tanzu/tf4k8s-pipelines-config fe-cphillipson-gcs:tf4k8s-pipelines-config
 rclone mkdir fe-cphillipson-gcs:tf4k8s-pipelines-state
-rclone sync -i /home/cphillipson/Documents/development/pivotal/tanzu/tf4k8s-pipelines-state fe-cphillipson-gcs:tf4k8s-pipelines-state
 
 gsutil versioning set on gs://s3cr3ts
 gsutil versioning set on gs://tf4k8s-pipelines-config
@@ -163,7 +143,7 @@ gsutil versioning set on gs://tf4k8s-pipelines-state
 ```
 > * When working with GCS you must enable versioning on each bucket
 
-#### Flying pipelines
+#### the fly CLI
 
 We'll continue to use the fly CLI to upload pipeline definitions with configuration (in this case we're talking about Concourse YAML [configuration](https://concourse-ci.org/config-basics.html#basic-schemas)).
 
@@ -180,11 +160,11 @@ For convenience we'll want to create a `ci` sub-directory to collect all our con
       + gcp
         - create-dns.yml
         - create-cluster.yml
-        - create-certmanager.yml
-        - create-nginx-ingress-controller.yml
-        - create-external-dns.yml
-        - create-harbor.yml
-        - create-tas4k8s.yml
+        - install-certmanager.yml
+        - install-nginx-ingress-controller.yml
+        - install-external-dns.yml
+        - install-harbor.yml
+        - install-tas4k8s.yml
 ```
 
 So putting this into practice, if we wanted to create a new Cloud DNS zone in Google Cloud, we could execute 
@@ -194,21 +174,22 @@ fly -t <target> set-pipeline -p create-dns -c ./pipelines/gcp/terraformer.yml -l
 fly -t <target> unpause-pipeline -p create-dns
 ```
 
-And other pipelines you might execute (in order) to bring up a TAS 3.0 instance
+And other pipelines you might execute (in order) to install a TAS 3.0 instance atop a GKE cluster
 
 ```
 fly -t <target> set-pipeline -p create-cluster -c ./pipelines/gcp/terraformer.yml -l ./ci/n00b/gcp/create-cluster.yml
 fly -t <target> unpause-pipeline -p create-cluster
-fly -t <target> set-pipeline -p create-certmanager -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/create-certmanager.yml
-fly -t <target> unpause-pipeline -p create-certmanager
-fly -t <target> set-pipeline -p create-nginx-ingress-controller -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/create-nginx-ingress-controller.yml
-fly -t <target> unpause-pipeline -p create-nginx-ingress-controller
-fly -t <target> set-pipeline -p create-external-dns -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/create-external-dns.yml
-fly -t <target> unpause-pipeline -p create-external-dns
-fly -t <target> set-pipeline -p create-harbor -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/create-harbor.yml
-fly -t <target> unpause-pipeline -p create-harbor
-fly -t <target> set-pipeline -p create-tas4k8s -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/create-tas4k8s.yml
-fly -t <target> unpause-pipeline -p create-tas4k8s
+
+fly -t <target> set-pipeline -p install-certmanager -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/install-certmanager.yml
+fly -t <target> unpause-pipeline -p install-certmanager
+fly -t <target> set-pipeline -p install-nginx-ingress-controller -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/install-nginx-ingress-controller.yml
+fly -t <target> unpause-pipeline -p install-nginx-ingress-controller
+fly -t <target> set-pipeline -p install-external-dns -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/install-external-dns.yml
+fly -t <target> unpause-pipeline -p install-external-dns
+fly -t <target> set-pipeline -p install-harbor -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/install-harbor.yml
+fly -t <target> unpause-pipeline -p install-harbor
+fly -t <target> set-pipeline -p install-tas4k8s -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/install-tas4k8s.yml
+fly -t <target> unpause-pipeline -p install-tas4k8s
 ```
 
 #### Lessons learned
@@ -216,10 +197,24 @@ fly -t <target> unpause-pipeline -p create-tas4k8s
 * Store secrets like your cloud provider credentials or `./kube/config` (in file format) in a storage bucket.
 * Remember to synchronize your local copy of `t4k8s-pipelines-config` when an addition or update is made to one or more `terraform.tfvars` files.
   * Use `rclone sync` with caution. If you don't want to destroy previous state, use `rclone copy` instead.
-* When initializing a new folder underneath `t4k8s-pipelines-state` with `terraform.tfstate` make sure you skip deletions on `rclone sync`.
 * Remember that you have to `git commit` and `git push` updates to the `tf4k8s-pipelines` git repository any time you make additions/updates to contents under a) `pipelines` or b) `terraform` directory trees before executing `fly set-pipeline`.
 * Remember to execute `fly set-pipeline` any time you a) adapt a pipeline definition or b) edit Concourse configuration
 * When using Concourse [terraform-resource](https://github.com/ljfranklin/terraform-resource), if you choose to include a directory or file, it is rooted from `/tmp/build/put`. 
 * After creating a cluster you'll need to create a `./kube/config` in order to install subsequent capabilities via Helm and Carvel.
-  * Consult the output of a `create-cluster/terraform-apply` job/build.
+  * Consult the output of a `install-cluster/terraform-apply` job/build.
   * Copy the contents into `s3cr3ts/<env>/.kube/config` then execute an `rclone sync`.
+
+### Addenda
+
+What follows are some other optional experiments you can try out on your own.  
+
+#### Build and push tf4k8s-toolsuite image
+
+```
+fly -t <target> set-pipeline -p build-and-push-tf4k8s-toolsuite-image \
+    -c ./pipelines/build-and-push-tf4k8s-toolsuite-image.yml \
+    --var image-repo-name=<repo-name> \
+    --var registry-username=<user> \
+    --var registry-password=<password>
+fly -t <target> unpause-pipeline -p build-and-push-tf4k8s-toolsuite-image
+```
