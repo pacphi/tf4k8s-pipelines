@@ -35,11 +35,12 @@ resources:
       subscription_id: ((azure_subscription_id))
 
 - name: kubeconfig
-  type: gcs-resource
+  type: abs-resource
   source:
-    bucket: s3cr3ts
-    json_key: ((gcp_account_key_json))
-    versioned_file: ((environment_name))/.kube/config
+    storage_account_name: s3cr3ts
+    storage_account_key: ((storage_account_key))
+    container: ((environment_name))/.kube
+    versioned_file: config
 
 - name: terraform-vars
   type: abs-resource
