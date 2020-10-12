@@ -1,3 +1,44 @@
+locals {
+  cf_domain = "tas.${var.base_domain}"
+}
+
+module "system_cert" {
+  source = "git::https://github.com/pacphi/tf4k8s.git//modules/acme/azure"
+
+  client_id = var.az_client_id
+  client_secret = var.az_client_secret
+  tenant_id = var.az_tenant_id
+  subscription_id = var.az_subscription_id
+  resource_group_name = var.resource_group_name
+  email = var.email
+  common_name = "*.${local.cf_domain}"
+  additional_domains = [ "*.login.${local.cf_domain}", "*.uaa.${local.cf_domain}" ]
+}
+
+module "workloads_cert" {
+  source = "git::https://github.com/pacphi/tf4k8s.git//modules/acme/azure"
+
+  client_id = var.client_id
+  client_secret = var.client_secret
+  tenant_id = var.tenant_id
+  subscription_id = var.subscription_id
+  resource_group_name = var.resource_group_name
+  email = var.email
+  common_name = "*.apps.${local.cf_domain}"
+}
+
+resource "local_file" "certs_var_file" {
+  content = join(
+    "\n", [
+      "system_fullchain_certificate = ${base64encode(module.system_cert.cert_full_chain)}",
+      "system_private_key = ${base64encode(module.system_cert.cert_key)}",
+      "workloads_fullchain_certificate = ${base64encode(module.workloads_cert.cert_full_chain)}",
+      "workloads_private_key = ${base64encode(module.workloads_cert.cert_key)}"
+    ]
+  )
+  filename = "certs.auto.tfvars"
+}
+
 module "tas4k8s" {
   source = "git::https://github.com/pacphi/tf4k8s.git//modules/tas4k8s"
 
@@ -22,6 +63,34 @@ module "tas4k8s" {
 
   kubeconfig_path  = var.kubeconfig_path
   ytt_lib_dir      = var.ytt_lib_dir
+
+  depends_on = [ 
+    local_file.certs_var_file
+  ]
+}
+
+variable "az_subscription_id" {
+  description = "Azure Subscription id"
+}
+
+variable "az_client_id" {
+  description = "Azure Service Principal appId"
+}
+
+variable "az_client_secret" {
+  description = "Azure Service Principal password"
+}
+
+variable "az_tenant_id" {
+  description = "Azure Service Principal tenant"
+}
+
+variable "resource_group_name" {
+  description = "Microsoft Azure Resource group name"
+}
+
+variable "email" {
+  description = "Email address of base domain owner"
 }
 
 variable "base_domain" {

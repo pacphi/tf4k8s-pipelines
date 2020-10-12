@@ -283,6 +283,13 @@ fly -t <target> unpause-pipeline -p build-and-push-tf4k8s-toolsuite-image
 
 ## Roadmap
 
-* Complete Concourse pipeline definition support for a modest complement of modules found in [tf4k8s](https://github.com/pacphi/tf4k8s) across: [ AWS (EKS), Azure (AKS), GCP (GKE), TKG (via TMC) ]
-* Adapt existing Concourse pipeline definitions to encrypt, mask and securely source secrets (e.g., cloud credentials, .kube/config)
-* Explore implementation of pipeline definitions supporting other engines (e.g., Jenkins, Tekton, Argo)
+ - Complete Concourse pipeline definition support for a modest complement of modules found in [tf4k8s](https://github.com/pacphi/tf4k8s) across 
+   - [x] AWS (EKS)
+   - [x] Azure (AKS)
+   - [x] GCP (GKE)
+   - [ ] TKG (via TMC) ]
+- [ ] Adapt existing Concourse pipeline definitions to encrypt, mask and securely source secrets (e.g., cloud credentials, .kube/config)
+- Explore implementation of pipeline definitions supporting other engines 
+  - [ ] Jenkins
+  - [ ] Tekton
+  - [ ] Argo
