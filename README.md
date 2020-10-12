@@ -263,7 +263,7 @@ fly -t <target> unpause-pipeline -p install-tas4k8s
 * Remember to execute `fly set-pipeline` any time you a) adapt a pipeline definition or b) edit Concourse configuration
 * When using Concourse [terraform-resource](https://github.com/ljfranklin/terraform-resource), if you choose to include a directory or file, it is rooted from `/tmp/build/put`. 
 * After creating a cluster you'll need to create a `./kube/config` in order to install subsequent capabilities via Helm and Carvel.
-  * Consult the output of a `install-cluster/terraform-apply` job/build.
+  * Consult the output of a `create-cluster/terraform-apply` job/build.
   * Copy the contents into `s3cr3ts/<env>/.kube/config` then execute an `rclone sync`.
 
 ### Addenda
