@@ -4,7 +4,7 @@ Sample GitOps pipelines that employ modules from [tf4k8s](https://github.com/pac
 
 ## Concourse
 
-![Concourse pipelines screenshot](concourse-pipelines.png?raw=true "Concourse pipelines screnshot")
+![Concourse pipelines screenshot](concourse-pipelines.png?raw=true "Concourse pipelines screenshot")
 
 ### Spin up a local instance
 
