@@ -96,7 +96,7 @@ For example:
       + tas4k8s
 ```
 
-Place a `terraform.tfvars` file in each of the subdirectories you wish to drive a `terraform` `plan` or `apply`.
+Place a `terraform.tfvars` file in each of the leaf subdirectories you wish to drive a `terraform` `plan` or `apply`.
 
 For example:
 
@@ -106,6 +106,18 @@ For example:
     + gcp
       + dns
         - terraform.tfvars
+```
+
+Here's a sample of the above module's file's contents:
+
+**terraform.tfvars**
+
+```
+project = "fe-cphillipson"
+gcp_service_account_credentials = "/tmp/build/put/credentials/gcp-credentials.json"
+root_zone_name = "ironleg-zone"
+environment_name = "n00b"
+dns_prefix = "n00b"
 ```
 
 Now we'll want to maintain secrets like a) cloud credentials and b) `./kube/config`.  The following is an example structure when working with Google Cloud Platform and an environment named `n00b`.
@@ -151,7 +163,7 @@ All pipeline definitions in this repository are found in the [pipelines](https:/
 
 Terraform modules are found in the [terraform](https://github.com/pacphi/tf4k8s-pipelines/tree/main/terraform) directory.
 
-For convenience we'll want to create a `ci` sub-directory to collect all our configuration. And for practical purposes we'll want to create a subdirectory structure that mirrors what created earlier, so something like:
+For convenience we'll want to create a `ci` sub-directory to collect all our configuration. And for practical purposes we'll want to create a subdirectory structure that mirrors what we created earlier, so something like:
 
 ```
 + tf4k8s-pipelines
@@ -165,6 +177,56 @@ For convenience we'll want to create a `ci` sub-directory to collect all our con
         - install-external-dns.yml
         - install-harbor.yml
         - install-tas4k8s.yml
+```
+
+Are you wondering about the content of those files?  Here are a couple examples:
+
+**create-dns.yml**
+
+```
+terraform_module: gcp/dns
+pipeline_repo_branch: main
+environment_name: n00b
+gcp_storage_bucket_folder: gcp/dns
+gcp_account_key_json: |
+  {
+    "type": "service_account",
+    "project_id": "REPLACE_ME",
+    "private_key_id": "REPLACE_ME",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nREPLACE_ME\n-----END PRIVATE KEY-----\n",
+    "client_email": "REPLACE_ME.iam.gserviceaccount.com",
+    "client_id": "REPLACE_ME",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://accounts.google.com/o/oauth2/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/REPLACE_ME.iam.gserviceaccount.com"
+  }
+```
+
+**install-harbor.yml**
+
+```
+terraform_resource_with_carvel_image: pacphi/terraform-resource-with-carvel
+registry_username: REPLACE_ME
+registry_password: REPLACE_ME
+terraform_module: k8s/harbor
+pipeline_repo_branch: main
+environment_name: n00b
+gcp_storage_bucket_folder: k8s/harbor
+gcp_account_key_json: |
+  {
+    "type": "service_account",
+    "project_id": "REPLACE_ME",
+    "private_key_id": "REPLACE_ME",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nREPLACE_ME\n-----END PRIVATE KEY-----\n",
+    "client_email": "REPLACE_ME.iam.gserviceaccount.com",
+    "client_id": "REPLACE_ME",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://accounts.google.com/o/oauth2/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/REPLACE_ME.iam.gserviceaccount.com"
+  }
+
 ```
 
 So putting this into practice, if we wanted to create a new Cloud DNS zone in Google Cloud, we could execute 
@@ -218,3 +280,9 @@ fly -t <target> set-pipeline -p build-and-push-tf4k8s-toolsuite-image \
     --var registry-password=<password>
 fly -t <target> unpause-pipeline -p build-and-push-tf4k8s-toolsuite-image
 ```
+
+## Roadmap
+
+* Complete Concourse pipeline definition support for a modest complement of modules found in [tf4k8s](https://github.com/pacphi/tf4k8s) across: [ AWS (EKS), Azure (AKS), GCP (GKE), TKG (via TMC) ]
+* Adapt existing Concourse pipeline definitions to securely source secrets (e.g., cloud credentials, .kube/config)
+* Explore implementation of pipeline definitions supporting other engines (e.g., Jenkins, Tekton, Argo)
