@@ -32,7 +32,7 @@ resource "local_file" "certs_var_file" {
 }
 
 module "tas4k8s" {
-  source = "git::https://github.com/pacphi/tf4k8s.git//modules/tas4k8s"
+  source = "git::https://github.com/pacphi/tf4k8s.git?ref=add-cert-var-file-path//modules/tas4k8s"
 
   domain           = "tas.${var.base_domain}"
 
@@ -56,9 +56,7 @@ module "tas4k8s" {
   kubeconfig_path  = var.kubeconfig_path
   ytt_lib_dir      = var.ytt_lib_dir
 
-  depends_on = [ 
-    local_file.certs_var_file
-  ]
+  certificate_variables_file_path = local_file.certs_var_file.filename
 }
 
 variable "project" {
