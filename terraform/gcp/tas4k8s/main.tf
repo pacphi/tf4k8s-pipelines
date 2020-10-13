@@ -3,7 +3,7 @@ locals {
 }
 
 module "system_cert" {
-  source = "git::https://github.com/pacphi/tf4k8s.git//modules/acme/gcp"
+  source = "git::https://github.com/pacphi/tf4k8s.git//modules/acme/gcp?ref=add-cert-var-file-path"
 
   project = var.project
   email = var.email
@@ -12,7 +12,7 @@ module "system_cert" {
 }
 
 module "workloads_cert" {
-  source = "git::https://github.com/pacphi/tf4k8s.git//modules/acme/gcp"
+  source = "git::https://github.com/pacphi/tf4k8s.git//modules/acme/gcp?ref=add-cert-var-file-path"
 
   project = var.project
   email = var.email
