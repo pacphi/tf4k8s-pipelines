@@ -3,13 +3,13 @@ resource_types:
   type: docker-image
   source:
     repository: ljfranklin/terraform-resource
-    tag: latest
+    tag: 0.13.4
 
 - name: abs-resource
   type: docker-image
   source:
     repository: pcfabr/azure-blobstore-resource
-    tag: latest
+    tag: 0.10.15
 
 resources:
 # The repo that contains Terraform

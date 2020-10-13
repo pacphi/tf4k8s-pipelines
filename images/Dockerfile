@@ -1,4 +1,4 @@
-FROM ljfranklin/terraform-resource
+FROM ljfranklin/terraform-resource:0.13.4
 LABEL author=cphillipson@pivotal.io
 
 ENV KAPP_VERSION=0.34.0 \

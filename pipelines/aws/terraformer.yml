@@ -3,13 +3,13 @@ resource_types:
   type: docker-image
   source:
     repository: ljfranklin/terraform-resource
-    tag: latest
+    tag: 0.13.4
 
 - name: s3-resource
   type: docker-image
   source:
     repository: concourse/s3-resource
-    tag: latest
+    tag: 1.1.0
 
 resources:
 # The repo that contains Terraform
