@@ -8,11 +8,11 @@ resources:
     branch: main
 
 # Where we will push the image
-- name: terraform-resource-with-carvel-image
+- name: bby-image
   type: registry-image
   icon: docker
   source:
-    repository: ((image-repo-name))/terraform-resource-with-carvel
+    repository: ((image-repo-name))/bby
     username: ((registry-username))
     password: ((registry-password))
 
@@ -34,9 +34,9 @@ jobs:
       outputs:
       - name: image
       params:
-        CONTEXT: tf4k8s-pipelines-repo/images/terraform-resource-with-carvel
+        CONTEXT: tf4k8s-pipelines-repo/images/bby
       run:
         path: build
-  - put: terraform-resource-with-carvel-image
+  - put: bby-image
     params:
       image: image/image.tar

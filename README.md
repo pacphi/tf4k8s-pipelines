@@ -67,10 +67,28 @@ fly -t <target> unpause-pipeline -p build-and-push-terraform-resource-with-carve
 ```
 
 * `<target>` is the alias for the connection details to a Concourse instance
-* `<repo-name>` is a Container Image Repository prefix (e.g., harbor.envy.ironleg.me/library)
-* `<username>` and `<password>` is the username of an account with read/write privileges to a Container Image Registry
+* `<repo-name>` is a container image repository prefix (e.g., docker.io or a private registry like harbor.envy.ironleg.me/library)
+* `<username>` and `<password>` are the credentials of an account with read/write privileges to a  container image registry
 
 > A pre-built container image exists on DockerHub, here: [pacphi/terraform-resource-with-carvel](https://hub.docker.com/repository/docker/pacphi/terraform-resource-with-carvel).
+
+### Build and push bby image
+
+```
+fly -t <target> set-pipeline -p build-and-push-bby-image \
+    -c ./pipelines/build-and-push-bash-bosh-and-ytt-image.yml \
+    --var image-repo-name=<repo-name> \
+    --var registry-username=<user> \
+    --var registry-password=<password>
+fly -t <target> unpause-pipeline -p build-and-push-bby-image
+```
+
+* `<target>` is the alias for the connection details to a Concourse instance
+* `<repo-name>` is a container image repository prefix (e.g., docker.io or a private registry like harbor.envy.ironleg.me/library)
+* `<username>` and `<password>` are the credentials of an account with read/write privileges to a  container image registry
+
+> A pre-built container image exists on DockerHub, here: [pacphi/bby](https://hub.docker.com/repository/docker/pacphi/bby).
+
 
 ### Working with tf4k8s-pipelines
 
