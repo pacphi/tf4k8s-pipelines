@@ -57,6 +57,11 @@ module "tas4k8s" {
   ytt_lib_dir      = var.ytt_lib_dir
 
   certificate_variables_file_path = local_file.certs_var_file.filename
+
+  depends_on = [
+    module.system_cert,
+    module.workloads_cert
+  ]
 }
 
 variable "project" {
