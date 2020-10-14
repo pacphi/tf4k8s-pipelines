@@ -57,6 +57,8 @@ fly login --target <target> --concourse-url https://<concourse_hostname> -u <use
 
 ### Build and push terraform-resource-with-carvel image
 
+A Concourse resource based off [ljfranklin/terraform-resource](https://github.com/ljfranklin/terraform-resource#terraform-concourse-resource) that also includes the Terraform [Carvel](https://carvel.dev/) [plugin](https://github.com/k14s/terraform-provider-k14s/blob/develop/docs/README.md).
+
 ```
 fly -t <target> set-pipeline -p build-and-push-terraform-resource-with-carvel-image \
     -c ./pipelines/build-and-push-terraform-resource-with-carvel-image.yml \
@@ -73,6 +75,8 @@ fly -t <target> unpause-pipeline -p build-and-push-terraform-resource-with-carve
 > A pre-built container image exists on DockerHub, here: [pacphi/terraform-resource-with-carvel](https://hub.docker.com/repository/docker/pacphi/terraform-resource-with-carvel).
 
 ### Build and push bby image
+
+A simple image based on [alpine](https://alpinelinux.org/about/) that includes [bash](https://www.gnu.org/software/bash/), [bosh](https://bosh.io/docs/cli-v2/) and [ytt](https://get-ytt.io/).
 
 ```
 fly -t <target> set-pipeline -p build-and-push-bby-image \
