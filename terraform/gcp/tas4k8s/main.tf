@@ -23,7 +23,7 @@ module "tas4k8s" {
   kubeconfig_path  = var.kubeconfig_path
   ytt_lib_dir      = var.ytt_lib_dir
 
-  certificate_variables_file_path = "/tmp/build/put/pipeline-repo/terraform/gcp/tas4k8s/certs-and-keys.vars"
+  certificate_variables_file_path = "/tmp/build/put/ck/certs-and-keys.vars"
 }
 
 variable "base_domain" {

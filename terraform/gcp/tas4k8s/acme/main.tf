@@ -32,7 +32,14 @@ data "template_file" "certs_var_file" {
 
 resource "local_file" "certs_var_file" {
   content  = data.template_file.certs_var_file.rendered
-  filename = "/tmp/build/put/pipeline-repo/terraform/gcp/tas4k8s/certs-and-keys.vars"
+  filename = "/tmp/certs-and-keys.vars"
+}
+
+resource "google_storage_bucket_object" "certs_var_file" {
+  name   = "certs-and-keys"
+  source = local_file.certs_var_file.filename
+  bucket = "tf4k8s-pipelines-config"
+  content_type = "text/plain"
 }
 
 variable "project" {
