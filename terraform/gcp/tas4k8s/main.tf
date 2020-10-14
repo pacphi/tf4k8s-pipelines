@@ -28,7 +28,7 @@ resource "local_file" "certs_var_file" {
       "workloads_private_key = ${base64encode(module.workloads_cert.cert_key)}"
     ]
   )
-  filename = "./certs.auto.tfvars"
+  filename = "/tmp/certs.auto.tfvars"
 }
 
 module "tas4k8s" {
