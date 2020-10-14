@@ -19,16 +19,15 @@ module "workloads_cert" {
   common_name = "*.apps.${local.cf_domain}"
 }
 
-resource "local_file" "certs_var_file" {
-  content = join(
-    "\n", [
-      "system_fullchain_certificate = ${base64encode(module.system_cert.cert_full_chain)}",
-      "system_private_key = ${base64encode(module.system_cert.cert_key)}",
-      "workloads_fullchain_certificate = ${base64encode(module.workloads_cert.cert_full_chain)}",
-      "workloads_private_key = ${base64encode(module.workloads_cert.cert_key)}"
-    ]
-  )
-  filename = "/tmp/certs.auto.tfvars"
+data "template_file" "certs_var_file" {
+  template = file("${path.module}/certs-and-keys.tpl")
+  
+  vars = {
+    system_fullchain_certificate = base64encode(module.system_cert.cert_full_chain)
+    system_private_key = base64encode(module.system_cert.cert_key)
+    workloads_fullchain_certificate = base64encode(module.workloads_cert.cert_full_chain)
+    workloads_private_key = base64encode(module.workloads_cert.cert_key)
+  }
 }
 
 module "tas4k8s" {
@@ -56,12 +55,7 @@ module "tas4k8s" {
   kubeconfig_path  = var.kubeconfig_path
   ytt_lib_dir      = var.ytt_lib_dir
 
-  certificate_variables_file_path = local_file.certs_var_file.filename
-
-  depends_on = [
-    module.system_cert,
-    module.workloads_cert
-  ]
+  certificate_variables_file_path = data.template_file.certs_var_file.filename
 }
 
 variable "project" {
