@@ -3,7 +3,7 @@ locals {
 }
 
 module "system_cert" {
-  source = "git::https://github.com/pacphi/tf4k8s.git//modules/acme/gcp?ref=add-cert-var-file-path"
+  source = "git::https://github.com/pacphi/tf4k8s.git//modules/acme/gcp"
 
   project = var.project
   email = var.email
@@ -12,7 +12,7 @@ module "system_cert" {
 }
 
 module "workloads_cert" {
-  source = "git::https://github.com/pacphi/tf4k8s.git//modules/acme/gcp?ref=add-cert-var-file-path"
+  source = "git::https://github.com/pacphi/tf4k8s.git//modules/acme/gcp"
 
   project = var.project
   email = var.email
@@ -32,7 +32,7 @@ resource "local_file" "certs_var_file" {
 }
 
 module "tas4k8s" {
-  source = "git::https://github.com/pacphi/tf4k8s.git//modules/tas4k8s?ref=add-cert-var-file-path"
+  source = "git::https://github.com/pacphi/tf4k8s.git//modules/tas4k8s"
 
   domain           = "tas.${var.base_domain}"
 
