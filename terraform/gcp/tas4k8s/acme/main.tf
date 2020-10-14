@@ -32,7 +32,7 @@ data "template_file" "certs_var_file" {
 
 resource "local_file" "certs_var_file" {
   content  = data.template_file.certs_var_file.rendered
-  filename = "${path.module}/../certs.auto.tfvars"
+  filename = "/tmp/certs-and-keys.vars"
 }
 
 variable "project" {
