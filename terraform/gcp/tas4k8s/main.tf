@@ -30,6 +30,11 @@ data "template_file" "certs_var_file" {
   }
 }
 
+resource "local_file" "certs_var_file" {
+  content  = data.template_file.certs_var_file.rendered
+  filename = "${path.module}/certs.auto.tfvars"
+}
+
 module "tas4k8s" {
   source = "git::https://github.com/pacphi/tf4k8s.git//modules/tas4k8s"
 
@@ -55,7 +60,7 @@ module "tas4k8s" {
   kubeconfig_path  = var.kubeconfig_path
   ytt_lib_dir      = var.ytt_lib_dir
 
-  certificate_variables_file_path = data.template_file.certs_var_file.filename
+  certificate_variables_file_path = local_file.certs_var_file.filename
 }
 
 variable "project" {
