@@ -36,7 +36,7 @@ resource "local_file" "certs_var_file" {
 }
 
 resource "google_storage_bucket_object" "certs_var_file" {
-  name   = "${var.path_to_certs_and_vars}"
+  name   = var.path_to_certs_and_keys
   source = local_file.certs_var_file.filename
   bucket = "tf4k8s-pipelines-config"
   content_type = "text/plain"
