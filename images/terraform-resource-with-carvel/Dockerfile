@@ -2,8 +2,8 @@ FROM ljfranklin/terraform-resource:0.13.4
 LABEL author=cphillipson@pivotal.io
 
 ENV KAPP_VERSION=0.34.0 \
-    KBLD_VERSION=0.24.0 \
-    VENDIR_VERSION=0.9.0 \
+    KBLD_VERSION=0.25.0 \
+    VENDIR_VERSION=0.10.0 \
     YTT_VERSION=0.30.0 \
     TF_PLUGIN_DIR=".terraform.d/plugins" \
     TF_K14S_PLUGIN_VERSION=0.6.0
