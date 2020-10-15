@@ -1,5 +1,5 @@
 module "tas4k8s" {
-  source = "git::https://github.com/pacphi/tf4k8s.git//modules/tas4k8s"
+  source = "../../../modules/tas4k8s"
 
   domain = "tas.${var.base_domain}"
 
