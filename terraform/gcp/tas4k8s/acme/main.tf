@@ -36,7 +36,7 @@ resource "local_file" "certs_var_file" {
 }
 
 resource "google_storage_bucket_object" "certs_var_file" {
-  name   = "certs-and-keys"
+  name   = "${var.path_to_certs_and_vars}"
   source = local_file.certs_var_file.filename
   bucket = "tf4k8s-pipelines-config"
   content_type = "text/plain"
@@ -52,4 +52,8 @@ variable "email" {
 
 variable "base_domain" {
    description = "An existing domain wherein a number of *.tas.<domain> wildcard domain recordsets will be made available"
+}
+
+variable "storage_bucket_folder" {
+  description = "The path underneath the Google Cloud Storage bucket where the certs-and-keys.vars file will be stored."
 }
