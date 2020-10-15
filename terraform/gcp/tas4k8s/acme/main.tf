@@ -54,6 +54,6 @@ variable "base_domain" {
    description = "An existing domain wherein a number of *.tas.<domain> wildcard domain recordsets will be made available"
 }
 
-variable "storage_bucket_folder" {
+variable "path_to_certs_and_keys" {
   description = "The path underneath the Google Cloud Storage bucket where the certs-and-keys.vars file will be stored."
 }

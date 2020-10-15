@@ -98,6 +98,10 @@ variable "ytt_lib_dir" {
   default = "../../ytt-libs"
 }
 
+variable "path_to_certs_and_keys" {
+  description = "The path underneath the Google Cloud Storage bucket where the certs-and-keys.vars file will be stored."
+}
+
 output "tas_api_endpoint" {
   description = "Cloud Foundry API endpoint"
   value       = module.tas4k8s.tas_api_endpoint
