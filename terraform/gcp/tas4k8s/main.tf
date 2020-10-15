@@ -23,7 +23,7 @@ module "tas4k8s" {
   kubeconfig_path  = var.kubeconfig_path
   ytt_lib_dir      = var.ytt_lib_dir
 
-  certificate_variables_file_path = "/tmp/build/put/ck/${var.path_to_certs_and_keys}"
+  certificate_variables_file_path = "/tmp/build/put/${var.path_to_certs_and_keys}"
 }
 
 variable "base_domain" {
