@@ -272,6 +272,10 @@ fly -t <target> set-pipeline -p install-external-dns -c ./pipelines/gcp/terrafor
 fly -t <target> unpause-pipeline -p install-external-dns
 fly -t <target> set-pipeline -p install-harbor -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/install-harbor.yml
 fly -t <target> unpause-pipeline -p install-harbor
+
+rclone mkdir fe-cphillipson-gcs:tas4k8s-bundles
+gsutil versioning set on gs://tas4k8s-bundles
+
 fly -t <target> set-pipeline -p install-tas4k8s -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/install-tas4k8s.yml
 fly -t <target> unpause-pipeline -p install-tas4k8s
 ```

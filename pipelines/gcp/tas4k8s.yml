@@ -27,7 +27,7 @@ resources:
     uri: https://github.com/pacphi/tf4k8s-pipelines.git
     branch: ((pipeline_repo_branch))
 
-- name: scripts-repo
+- name: source-repo
   type: git
   icon: github
   source:
@@ -54,6 +54,13 @@ resources:
     bucket: tf4k8s-pipelines-config
     json_key: ((gcp_account_key_json))
     versioned_file: ((environment_name))/terraform/k8s/tas4k8s/certs-and-keys.vars
+
+- name: tas4k8s-bundles
+  type: gcs-resource
+  source:
+    bucket: tas4k8s-bundles
+    json_key: ((gcp_account_key_json))
+    versioned_file: ((environment_name))/tas4k8s.tar.gz
 
 - name: acme-tf-state
   type: terraform
@@ -129,30 +136,25 @@ jobs:
       terraform_source: pipeline-repo/terraform/gcp/tas4k8s/acme
       plan_run: true
 
-- name: tas4k8s-tf-plan
+- name: create-tas4k8s-bundle
+  serial: true
   plan:
   - get: pipeline-repo
     trigger: true
     passed: [acme-tf-apply]
-  - get: gcloud-credentials
-    trigger: true
-    passed: [acme-tf-apply]
-  - get: ck
-    trigger: true
-  - get: kubeconfig
-    trigger: true
-  - get: scripts-repo
+  - get: source-repo
     trigger: true
   - get: tas4k8s-distro
     trigger: true
   - get: tas4k8s-tfvars
     trigger: true
-  - task: unpack-and-configure-tas4k8s-distro
+  - task: unpack-and-configure-source
     config:
       inputs:
+        - name: pipeline-repo
+        - name: source-repo
         - name: tas4k8s-distro
         - name: tas4k8s-tfvars
-        - name: scripts-repo
       platform: linux
       image_resource:
         type: registry-image
@@ -169,49 +171,100 @@ jobs:
             tar -xvf "$FILENAME" -C /tmp
             cd ..
             DOMAIN=$(sed -n '1p' < tas4k8s-tfvars/terraform.tfvars | cut -d "=" -f 2 | tr -d "\"" | tr -d '[:space:]')
-            cd scripts-repo/ytt-libs/tas4k8s
+            cd source-repo/ytt-libs/tas4k8s
             ./scripts/configure-tas4k8s.sh "tas.$DOMAIN"
             ./scripts/cleanup-tas4k8s.sh
+            cd ../../..
+            mkdir -p tas4k8s-bundle/experiments/k8s/tas4k8s
+            mkdir -p tas4k8s-bundle/modules/tas4k8s
+            mkdir -p tas4k8s-bundle/ytt-libs/tas4k8s/vendor
+            cp pipeline-repo/terraform/gcp/tas4k8s/main.tf tas4k8s-bundle/experiments/k8s/tas4k8s/main.tf
+            cp tas4k8s-tfvars/terraform.tfvars tas4k8s-bundle/experiments/k8s/tas4k8s
+            cp -rp source-repo/modules/tas4k8s tas4k8s-bundle/modules
+            cp -rp source-repo/ytt-libs/tas4k8s/vendor tas4k8s-bundle/ytt-libs/tas4k8s
       outputs: 
-        - name: scripts-repo
+        - name: tas4k8s-bundle
+  - task: package-bundle
+    config:
+      inputs:
+        - name: tas4k8s-bundle
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: 
+          repository: ((bby_image))
+          tag: latest
+      run:
+        path: sh
+        args:
+          - -exc
+          - |
+            cd tas4k8s-bundle
+            tar -czvf tas4k8s.tar.gz experiments modules ytt-libs
+            cp tas4k8s.tar.gz ../tas4k8s-compressed
+      outputs: 
+        - name: tas4k8s-compressed
+  - put: tas4k8s-bundles
+    params:
+      file: tas4k8s-compressed/tas4k8s.tar.gz
+      predefined_acl: bucketOwnerRead
+      content_type: application/octet-stream
+      cache_control: max-age=3600
+
+- name: tas4k8s-tf-plan
+  serial: true
+  plan:
+  - get: tas4k8s-bundles
+    trigger: true
+    passed: [create-tas4k8s-bundle]
+  - get: ck
+    trigger: true
+  - get: kubeconfig
+    trigger: true
+  - task: unpack-bundle
+    config:
+      inputs:
+        - name: tas4k8s-bundles
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: 
+          repository: ((bby_image))
+          tag: latest
+      run:
+        path: sh
+        args:
+          - -exc
+          - |
+            cd tas4k8s-bundles
+            tar -xvf tas4k8s.tar.gz -C ../tas4k8s-repo
+      outputs: 
+        - name: tas4k8s-repo
   - put: tas4k8s-tf-state
     params:
-      terraform_source: pipeline-repo/terraform/gcp/tas4k8s
+      terraform_source: tas4k8s-repo/experiments/k8s/tas4k8s
       plan_only: true
-      var_files: [tas4k8s-tfvars/terraform.tfvars]
+      var_files: [tas4k8s-repo/experiments/k8s/tas4k8s/terraform.tfvars]
         
 - name: tas4k8s-tf-apply
+  serial: true
   plan:
-  - get: pipeline-repo
-    trigger: true
-    passed: [tas4k8s-tf-plan]
-  - get: gcloud-credentials
+  - get: tas4k8s-bundles
     trigger: true
     passed: [tas4k8s-tf-plan]
   - get: ck
     trigger: true
     passed: [tas4k8s-tf-plan]
   - get: kubeconfig
-    trigger: true
-    passed: [tas4k8s-tf-plan]
-  - get: scripts-repo
-    trigger: true
-    passed: [tas4k8s-tf-plan]
-  - get: tas4k8s-distro
-    trigger: true
-    passed: [tas4k8s-tf-plan]
-  - get: tas4k8s-tfvars
     trigger: true
     passed: [tas4k8s-tf-plan]
   - get: tas4k8s-tf-state
     trigger: true
     passed: [tas4k8s-tf-plan]
-  - task: unpack-and-configure-tas4k8s-distro
+  - task: unpack-bundle
     config:
       inputs:
-        - name: tas4k8s-distro
-        - name: tas4k8s-tfvars
-        - name: scripts-repo
+        - name: tas4k8s-bundles
       platform: linux
       image_resource:
         type: registry-image
@@ -223,56 +276,60 @@ jobs:
         args:
           - -exc
           - |
-            cd tas4k8s-distro
-            FILENAME=$(find . -type f -name "tanzu-application-service.*" -print | head -n 1)
-            tar -xvf "$FILENAME" -C /tmp
-            cd ..
-            DOMAIN=$(sed -n '1p' < tas4k8s-tfvars/terraform.tfvars | cut -d "=" -f 2 | tr -d "\"" | tr -d '[:space:]')
-            cd scripts-repo/ytt-libs/tas4k8s
-            ./scripts/configure-tas4k8s.sh "tas.$DOMAIN"
-            ./scripts/cleanup-tas4k8s.sh
+            cd tas4k8s-bundles
+            tar -xvf tas4k8s.tar.gz -C ../tas4k8s-repo
       outputs: 
-        - name: scripts-repo
+        - name: tas4k8s-repo
   - put: tas4k8s-tf-state
     params:
-      terraform_source: pipeline-repo/terraform/gcp/tas4k8s
+      terraform_source: tas4k8s-repo/experiments/k8s/tas4k8s
       plan_run: true
 
 - name: tas4k8s-tf-destroy
+  serial: true
   plan:
-  - get: pipeline-repo
+  - get: tas4k8s-bundles
     trigger: false
-    passed: [tas4k8s-tf-apply]
-  - get: gcloud-credentials
-    trigger: false
-    passed: [tas4k8s-tf-apply]
   - get: ck
     trigger: false
-    passed: [tas4k8s-tf-apply]
   - get: kubeconfig
     trigger: false
-    passed: [tas4k8s-tf-apply]
-  - get: tas4k8s-tfvars
-    trigger: false
+  - task: unpack-bundle
+    config:
+      inputs:
+        - name: tas4k8s-bundles
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: 
+          repository: ((bby_image))
+          tag: latest
+      run:
+        path: sh
+        args:
+          - -exc
+          - |
+            cd tas4k8s-bundles
+            tar -xvf tas4k8s.tar.gz -C ../tas4k8s-repo
+      outputs: 
+        - name: tas4k8s-repo
   - get: tas4k8s-tf-state
     trigger: false
-    passed: [tas4k8s-tf-apply]
   - put: tas4k8s-tf-state
     params:
-      terraform_source: pipeline-repo/terraform/gcp/tas4k8s
+      terraform_source: tas4k8s-repo/experiments/k8s/tas4k8s
       action: destroy
-      var_files: [tas4k8s-tfvars/terraform.tfvars]
+      var_files: [tas4k8s-repo/experiments/k8s/tas4k8s/terraform.tfvars]
     get_params:
       action: destroy
 
 - name: acme-tf-destroy
+  serial: true
   plan:
   - get: pipeline-repo
     trigger: false
-    passed: [tas4k8s-tf-destroy]
   - get: gcloud-credentials
-    trigger: true
-    passed: [tas4k8s-tf-destroy]
+    trigger: false
   - get: acme-tfvars
     trigger: false
   - get: acme-tf-state
