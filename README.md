@@ -6,41 +6,33 @@ Sample GitOps pipelines that employ modules from [tf4k8s](https://github.com/pac
 
 ![Concourse pipelines screenshot](concourse-pipelines.png?raw=true "Concourse pipelines screenshot")
 
-### Spin up a local instance
+You could spin up a local [Concourse](https://concourse-ci.org/install.html) instance for test purposes. Or you might consider employing the [control-tower](https://github.com/EngineerBetter/control-tower) CLI to deploy a self-healing, self-updating Concourse instance with [Grafana](https://grafana.com/) and [CredHub](https://docs.cloudfoundry.org/credhub/) in either AWS or GCP.
 
-This script uses [Docker Compose](https://docs.docker.com/compose/install/) to launch a local [Concourse](https://concourse-ci.org/install.html) instance
+### Getting Started
 
-```
-./bin/launch-local-concourse-instance.sh
-```
+#### Deploying a local instance
 
-#### Lifecycle management
+<details><summary>Start</summary><pre>./bin/launch-local-concourse-instance.sh</pre></details>
 
-```
-cd .concourse-local
-```
+> This script uses [Docker Compose](https://docs.docker.com/compose/install/) to launch a local Concourse instance
 
-##### Stop 
+<details><summary>Change directories</summary><pre>cd .concourse-local</pre></details> 
 
-```
-docker-compose stop
-```
+> to lifecycle manage the instance 
 
-##### Restart
+<details><summary>Stop</summary><pre>docker-compose stop</pre></details>
 
-```
-docker-compose restart -d
-```
+<details><summary>Restart</summary><pre>docker-compose restart -d</pre></details>
 
-##### Teardown
+<details><summary>Teardown</summary><pre>docker-compose down</pre></details>
 
-```
-docker-compose down
-```
+#### Deploying a cloud-hosted instance
 
-### Download CLI from Concourse instance
+Consult the control-tower CLI install [documentation](https://github.com/EngineerBetter/control-tower#tldr).
 
-Download a version of the [fly](https://concourse-ci.org/fly.html) CLI from a known Concourse instance
+### Install the fly CLI
+
+Download a version of the [fly](https://concourse-ci.org/fly.html) CLI from the Concourse instance you just deployed.
 
 ```
 wget https://<concourse_hostname>/api/v1/cli?arch=amd64&platform=<platform>
@@ -48,14 +40,14 @@ sudo mv fly /usr/local/bin
 ```
 > Replace `concourse_hostname>` with the hostname of the Concourse instance you wish to target.  Also replace `<platform>` above with one of [ darwin, linux, windows].
 
-### Login
+### Login to a Concourse instance with the fly CLI
 
 ```
 fly login --target <target> --concourse-url https://<concourse_hostname> -u <username> -p <password>
 ```
 > Replace `<target>` with any name (this acts as an alias for the connection details to the Concourse instance).  Also replace `concourse_hostname>` with the hostname of the Concourse instance you wish to target. Lastly, replace `<username>` and `<password>` with valid, authorized credentials to the Concourse instance team. 
 
-### Build and push terraform-resource-with-carvel image
+### Build and push the terraform-resource-with-carvel image
 
 A Concourse resource based off [ljfranklin/terraform-resource](https://github.com/ljfranklin/terraform-resource#terraform-concourse-resource) that also includes the Terraform [Carvel](https://carvel.dev/) [plugin](https://github.com/k14s/terraform-provider-k14s/blob/develop/docs/README.md).
 
@@ -74,7 +66,7 @@ fly -t <target> unpause-pipeline -p build-and-push-terraform-resource-with-carve
 
 > A pre-built container image exists on DockerHub, here: [pacphi/terraform-resource-with-carvel](https://hub.docker.com/repository/docker/pacphi/terraform-resource-with-carvel).
 
-### Build and push bby image
+### Build and push the bby image
 
 A simple image based on [alpine](https://alpinelinux.org/about/) that includes [bash](https://www.gnu.org/software/bash/), [bosh](https://bosh.io/docs/cli-v2/) and [ytt](https://get-ytt.io/).
 
@@ -94,7 +86,7 @@ fly -t <target> unpause-pipeline -p build-and-push-bby-image
 > A pre-built container image exists on DockerHub, here: [pacphi/bby](https://hub.docker.com/repository/docker/pacphi/bby).
 
 
-### Working with tf4k8s-pipelines
+### tf4k8s-pipelines: A Guided Tour
 
 #### Setup 
 
@@ -170,14 +162,16 @@ rclone sync -i /home/cphillipson/Documents/development/pivotal/tanzu/s3cr3ts fe-
 rclone mkdir fe-cphillipson-gcs:tf4k8s-pipelines-config
 rclone sync -i /home/cphillipson/Documents/development/pivotal/tanzu/tf4k8s-pipelines-config fe-cphillipson-gcs:tf4k8s-pipelines-config
 rclone mkdir fe-cphillipson-gcs:tf4k8s-pipelines-state
+rclone mkdir fe-cphillipson-gcs:tas4k8s-bundles
 
 gsutil versioning set on gs://s3cr3ts
 gsutil versioning set on gs://tf4k8s-pipelines-config
 gsutil versioning set on gs://tf4k8s-pipelines-state
+gsutil versioning set on gs://tas4k8s-bundles
 ```
 > * When working with GCS you must enable versioning on each bucket
 
-#### the fly CLI
+#### Pipeline definitions, Terraform and configuration
 
 We'll continue to use the fly CLI to upload pipeline definitions with configuration (in this case we're talking about Concourse YAML [configuration](https://concourse-ci.org/config-basics.html#basic-schemas)).
 
@@ -273,14 +267,11 @@ fly -t <target> unpause-pipeline -p install-external-dns
 fly -t <target> set-pipeline -p install-harbor -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/install-harbor.yml
 fly -t <target> unpause-pipeline -p install-harbor
 
-rclone mkdir fe-cphillipson-gcs:tas4k8s-bundles
-gsutil versioning set on gs://tas4k8s-bundles
-
 fly -t <target> set-pipeline -p install-tas4k8s -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/install-tas4k8s.yml
 fly -t <target> unpause-pipeline -p install-tas4k8s
 ```
 
-#### Lessons learned
+#### Workflow Summary
 
 * Store secrets like your cloud provider credentials or `./kube/config` (in file format) in a storage bucket.
 * Remember to synchronize your local copy of `t4k8s-pipelines-config` when an addition or update is made to one or more `terraform.tfvars` files.
@@ -290,22 +281,8 @@ fly -t <target> unpause-pipeline -p install-tas4k8s
 * When using Concourse [terraform-resource](https://github.com/ljfranklin/terraform-resource), if you choose to include a directory or file, it is rooted from `/tmp/build/put`. 
 * After creating a cluster you'll need to create a `./kube/config` in order to install subsequent capabilities via Helm and Carvel.
   * Consult the output of a `create-cluster/terraform-apply` job/build.
-  * Copy the contents into `s3cr3ts/<env>/.kube/config` then execute an `rclone sync`.
+  * Copy the contents into `s3cr3ts/<env>/.kube/config` then execute an `rclone sync`. 
 
-### Addenda
-
-What follows are some other optional experiments you can try out on your own.  
-
-#### Build and push tf4k8s-toolsuite image
-
-```
-fly -t <target> set-pipeline -p build-and-push-tf4k8s-toolsuite-image \
-    -c ./pipelines/build-and-push-tf4k8s-toolsuite-image.yml \
-    --var image-repo-name=<repo-name> \
-    --var registry-username=<user> \
-    --var registry-password=<password>
-fly -t <target> unpause-pipeline -p build-and-push-tf4k8s-toolsuite-image
-```
 
 ## Roadmap
 
@@ -316,6 +293,7 @@ fly -t <target> unpause-pipeline -p build-and-push-tf4k8s-toolsuite-image
     - [ ] TKG (via TMC)
 * Adapt existing Concourse pipeline definitions to 
     - [ ] encrypt, mask and securely source secrets (e.g., cloud credentials, .kube/config)
+    - [ ] add smoke-tests
 * Explore implementation of pipeline definitions supporting other engines 
     - [ ] Jenkins
     - [ ] Tekton
