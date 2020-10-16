@@ -271,6 +271,8 @@ fly -t <target> set-pipeline -p install-tas4k8s -c ./pipelines/gcp/terraformer-w
 fly -t <target> unpause-pipeline -p install-tas4k8s
 ```
 
+Admittedly this is a bit of effort to assemble.  To help get you started, visit the [dist](https://github.com/pacphi/tf4k8s-pipelines/tree/main/dist) folder, download and unpack the sample environment templates(s). Make sure to update all occurrences of `REPLACE_ME` within the configuration files. 
+
 #### Workflow Summary
 
 * Store secrets like your cloud provider credentials or `./kube/config` (in file format) in a storage bucket.
@@ -282,7 +284,6 @@ fly -t <target> unpause-pipeline -p install-tas4k8s
 * After creating a cluster you'll need to create a `./kube/config` in order to install subsequent capabilities via Helm and Carvel.
   * Consult the output of a `create-cluster/terraform-apply` job/build.
   * Copy the contents into `s3cr3ts/<env>/.kube/config` then execute an `rclone sync`. 
-
 
 ## Roadmap
 
