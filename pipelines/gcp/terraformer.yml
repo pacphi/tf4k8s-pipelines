@@ -35,7 +35,7 @@ resources:
   source:
     bucket: s3cr3ts
     json_key: ((gcp_account_key_json))
-    versioned_file: gcp-credentials.json
+    versioned_file: ((environment_name))/gcp-credentials.json
 
 - name: terraform-vars
   type: gcs-resource

@@ -7,11 +7,11 @@ resource_types:
     username: ((registry_username))
     password: ((registry_password))
 
-- name: gcs-resource
+- name: abs-resource
   type: docker-image
   source:
-    repository: frodenas/gcs-resource
-    tag: v0.6.0
+    repository: pcfabr/azure-blobstore-resource
+    tag: 0.10.15
 
 - name: pivnet
   type: docker-image
@@ -42,81 +42,79 @@ resources:
     product_version: ((product_version))
 
 - name: acme-tfvars
-  type: gcs-resource
+  type: abs-resource
   source:
-    bucket: tf4k8s-pipelines-config
-    json_key: ((gcp_account_key_json))
-    versioned_file: ((environment_name))/terraform/k8s/tas4k8s/acme/terraform.tfvars
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: tf4k8s-pipelines-config/((environment_name))/terraform/k8s/tas4k8s/acme
+    versioned_file: terraform.tfvars
 
 - name: ck
-  type: gcs-resource
+  type: abs-resource
   source:
-    bucket: tf4k8s-pipelines-config
-    json_key: ((gcp_account_key_json))
-    versioned_file: ((environment_name))/terraform/k8s/tas4k8s/certs-and-keys.vars
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: tf4k8s-pipelines-config/((environment_name))/terraform/k8s/tas4k8s
+    versioned_file: certs-and-keys.vars
 
 - name: tas4k8s-bundles
-  type: gcs-resource
+  type: abs-resource
   source:
-    bucket: tas4k8s-bundles
-    json_key: ((gcp_account_key_json))
-    versioned_file: ((environment_name))/tas4k8s.tar.gz
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: tas4k8s-bundles/((environment_name))
+    versioned_file: tas4k8s.tar.gz
 
 - name: acme-tf-state
   type: terraform
   source:
     env_name: ((environment_name))
-    backend_type: gcs
+    backend_type: azurerm
     backend_config:
-      bucket: tf4k8s-pipelines-state
-      prefix: ((environment_name))/terraform/k8s/tas4k8s/acme
-      credentials: ((gcp_account_key_json))
-    env:
-      GOOGLE_APPLICATION_CREDENTIALS: /tmp/build/put/gcloud-credentials/gcp-credentials.json
+      storage_account_name: ((storage_account_name))
+      container_name: tf4k8s-pipelines-state/((environment_name))/terraform/terraform/k8s/tas4k8s/acme
+      client_id: ((azure_client_id))
+      tenant_id: ((azure_tenant_id)
+      subscription_id: ((azure_subscription_id))
 
 - name: tas4k8s-tfvars
-  type: gcs-resource
+  type: abs-resource
   source:
-    bucket: tf4k8s-pipelines-config
-    json_key: ((gcp_account_key_json))
-    versioned_file: ((environment_name))/terraform/k8s/tas4k8s/terraform.tfvars
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: tf4k8s-pipelines-config/((environment_name))/terraform/k8s/tas4k8s
+    versioned_file: terraform.tfvars
 
 - name: tas4k8s-tf-state
   type: terraform
   source:
     env_name: ((environment_name))
-    backend_type: gcs
+    backend_type: azurerm
     backend_config:
-      bucket: tf4k8s-pipelines-state
-      prefix: ((environment_name))/terraform/k8s/tas4k8s
-      credentials: ((gcp_account_key_json))
-
-- name: gcloud-credentials
-  type: gcs-resource
-  source:
-    bucket: s3cr3ts
-    json_key: ((gcp_account_key_json))
-    versioned_file: ((environment_name))/gcp-credentials.json
+      storage_account_name: ((storage_account_name))
+      container_name: tf4k8s-pipelines-state/((environment_name))/terraform/terraform/k8s/tas4k8s
+      client_id: ((azure_client_id))
+      tenant_id: ((azure_tenant_id)
+      subscription_id: ((azure_subscription_id))
 
 - name: kubeconfig
-  type: gcs-resource
+  type: abs-resource
   source:
-    bucket: s3cr3ts
-    json_key: ((gcp_account_key_json))
-    versioned_file: ((environment_name))/.kube/config
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: s3cr3ts/((environment_name))/.kube
+    versioned_file: config
 
 jobs:
 - name: acme-tf-plan
   plan:
   - get: pipeline-repo
     trigger: true
-  - get: gcloud-credentials
-    trigger: true
   - get: acme-tfvars
     trigger: true
   - put: acme-tf-state
     params:
-      terraform_source: pipeline-repo/terraform/gcp/tas4k8s/acme
+      terraform_source: pipeline-repo/terraform/azure/tas4k8s/acme
       plan_only: true
       var_files: [acme-tfvars/terraform.tfvars]
         
@@ -125,15 +123,12 @@ jobs:
   - get: pipeline-repo
     trigger: true
     passed: [acme-tf-plan]
-  - get: gcloud-credentials
-    trigger: true
-    passed: [acme-tf-plan]
   - get: acme-tf-state
     trigger: true
     passed: [acme-tf-plan]
   - put: acme-tf-state
     params:
-      terraform_source: pipeline-repo/terraform/gcp/tas4k8s/acme
+      terraform_source: pipeline-repo/terraform/azure/tas4k8s/acme
       plan_run: true
 
 - name: create-tas4k8s-bundle
@@ -178,7 +173,7 @@ jobs:
             mkdir -p tas4k8s-bundle/experiments/k8s/tas4k8s
             mkdir -p tas4k8s-bundle/modules/tas4k8s
             mkdir -p tas4k8s-bundle/ytt-libs/tas4k8s/vendor
-            cp pipeline-repo/terraform/gcp/tas4k8s/main.tf tas4k8s-bundle/experiments/k8s/tas4k8s/main.tf
+            cp pipeline-repo/terraform/azure/tas4k8s/main.tf tas4k8s-bundle/experiments/k8s/tas4k8s/main.tf
             cp tas4k8s-tfvars/terraform.tfvars tas4k8s-bundle/experiments/k8s/tas4k8s
             cp -rp source-repo/modules/tas4k8s tas4k8s-bundle/modules
             cp -rp source-repo/ytt-libs/tas4k8s/vendor tas4k8s-bundle/ytt-libs/tas4k8s
@@ -328,8 +323,6 @@ jobs:
   plan:
   - get: pipeline-repo
     trigger: false
-  - get: gcloud-credentials
-    trigger: false
   - get: acme-tfvars
     trigger: false
   - get: acme-tf-state
@@ -337,7 +330,7 @@ jobs:
     passed: [acme-tf-apply]
   - put: acme-tf-state
     params:
-      terraform_source: pipeline-repo/terraform/gcp/tas4k8s/acme
+      terraform_source: pipeline-repo/terraform/azure/tas4k8s/acme
       action: destroy
       var_files: [acme-tfvars/terraform.tfvars]
     get_params:

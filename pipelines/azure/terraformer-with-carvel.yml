@@ -28,8 +28,8 @@ resources:
     env_name: ((environment_name))
     backend_type: azurerm
     backend_config:
-      storage_account_name: tf4k8s-pipelines-state
-      container_name: ((environment_name))/terraform/((azure_storage_bucket_folder))
+      storage_account_name: ((storage_account_name))
+      container_name: tf4k8s-pipelines-state/((environment_name))/terraform/((azure_storage_bucket_folder))
       client_id: ((azure_client_id))
       tenant_id: ((azure_tenant_id)
       subscription_id: ((azure_subscription_id))
@@ -37,17 +37,17 @@ resources:
 - name: kubeconfig
   type: abs-resource
   source:
-    storage_account_name: s3cr3ts
+    storage_account_name: ((storage_account_name))
     storage_account_key: ((storage_account_key))
-    container: ((environment_name))/.kube
+    container: s3cr3ts/((environment_name))/.kube
     versioned_file: config
 
 - name: terraform-vars
   type: abs-resource
   source:
-    storage_account_name: tf4k8s-pipelines-config
+    storage_account_name: ((storage_account_name))
     storage_account_key: ((storage_account_key))
-    container: ((environment_name))/terraform/((azure_storage_bucket_folder))
+    container: tf4k8s-pipelines-config/((environment_name))/terraform/((azure_storage_bucket_folder))
     versioned_file: terraform.tfvars
 
 jobs:
