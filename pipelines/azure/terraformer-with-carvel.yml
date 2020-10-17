@@ -29,11 +29,9 @@ resources:
     backend_type: azurerm
     backend_config:
       storage_account_name: ((storage_account_name))
+      access_key: ((storage_account_key))
       container_name: tf4k8s-pipelines-state
       key: ((environment_name))/terraform/((azure_storage_bucket_folder))/terraform.tfstate
-      client_id: ((azure_client_id))
-      tenant_id: ((azure_tenant_id)
-      subscription_id: ((azure_subscription_id))
 
 - name: terraform-vars
   type: abs-resource
