@@ -46,24 +46,24 @@ resources:
   source:
     storage_account_name: ((storage_account_name))
     storage_account_key: ((storage_account_key))
-    container: tf4k8s-pipelines-config/((environment_name))/terraform/k8s/tas4k8s/acme
-    versioned_file: terraform.tfvars
+    container: tf4k8s-pipelines-config
+    versioned_file: ((environment_name))/terraform/k8s/tas4k8s/acme/terraform.tfvars
 
 - name: ck
   type: abs-resource
   source:
     storage_account_name: ((storage_account_name))
     storage_account_key: ((storage_account_key))
-    container: tf4k8s-pipelines-config/((environment_name))/terraform/k8s/tas4k8s
-    versioned_file: certs-and-keys.vars
+    container: tf4k8s-pipelines-config
+    versioned_file: ((environment_name))/terraform/k8s/tas4k8s/certs-and-keys.vars
 
 - name: tas4k8s-bundles
   type: abs-resource
   source:
     storage_account_name: ((storage_account_name))
     storage_account_key: ((storage_account_key))
-    container: tas4k8s-bundles/((environment_name))
-    versioned_file: tas4k8s.tar.gz
+    container: tas4k8s-bundles
+    versioned_file: ((environment_name))/tas4k8s.tar.gz
 
 - name: acme-tf-state
   type: terraform
@@ -72,7 +72,8 @@ resources:
     backend_type: azurerm
     backend_config:
       storage_account_name: ((storage_account_name))
-      container_name: tf4k8s-pipelines-state/((environment_name))/terraform/terraform/k8s/tas4k8s/acme
+      container_name: tf4k8s-pipelines-state
+      key: ((environment_name))/terraform/terraform/k8s/tas4k8s/acme/terraform.tfstate
       client_id: ((azure_client_id))
       tenant_id: ((azure_tenant_id)
       subscription_id: ((azure_subscription_id))
@@ -82,8 +83,8 @@ resources:
   source:
     storage_account_name: ((storage_account_name))
     storage_account_key: ((storage_account_key))
-    container: tf4k8s-pipelines-config/((environment_name))/terraform/k8s/tas4k8s
-    versioned_file: terraform.tfvars
+    container: tf4k8s-pipelines-config
+    versioned_file: ((environment_name))/terraform/k8s/tas4k8s/terraform.tfvars
 
 - name: tas4k8s-tf-state
   type: terraform
@@ -92,7 +93,8 @@ resources:
     backend_type: azurerm
     backend_config:
       storage_account_name: ((storage_account_name))
-      container_name: tf4k8s-pipelines-state/((environment_name))/terraform/terraform/k8s/tas4k8s
+      container_name: tf4k8s-pipelines-state
+      key: ((environment_name))/terraform/terraform/k8s/tas4k8s/terraform.tfstate
       client_id: ((azure_client_id))
       tenant_id: ((azure_tenant_id)
       subscription_id: ((azure_subscription_id))
@@ -102,8 +104,8 @@ resources:
   source:
     storage_account_name: ((storage_account_name))
     storage_account_key: ((storage_account_key))
-    container: s3cr3ts/((environment_name))/.kube
-    versioned_file: config
+    container: s3cr3ts
+    versioned_file: ((environment_name))/.kube/config
 
 jobs:
 - name: acme-tf-plan
