@@ -1,0 +1,42 @@
+resources:
+# The repo with our Dockerfile
+- name: tf4k8s-pipelines-repo
+  type: git
+  icon: github
+  source:
+    uri: https://github.com/pacphi/tf4k8s-pipelines.git
+    branch: main
+
+# Where we will push the image
+- name: terraform-resource-with-carvel-image
+  type: registry-image
+  icon: docker
+  source:
+    repository: ((image-repo-name))/terraform-resource-with-az-cli
+    username: ((registry-username))
+    password: ((registry-password))
+
+jobs:
+- name: build-and-push
+  plan:
+  - get: tf4k8s-pipelines-repo
+    trigger: true
+  - task: build-task-image
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: vito/oci-build-task
+      inputs:
+      - name: tf4k8s-pipelines-repo
+      outputs:
+      - name: image
+      params:
+        CONTEXT: tf4k8s-pipelines-repo/images/terraform-resource-with-az-cli
+      run:
+        path: build
+  - put: terraform-resource-with-az-cli-image
+    params:
+      image: image/image.tar

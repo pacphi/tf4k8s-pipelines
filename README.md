@@ -47,6 +47,24 @@ fly login --target <target> --concourse-url https://<concourse_hostname> -u <use
 ```
 > Replace `<target>` with any name (this acts as an alias for the connection details to the Concourse instance).  Also replace `concourse_hostname>` with the hostname of the Concourse instance you wish to target. Lastly, replace `<username>` and `<password>` with valid, authorized credentials to the Concourse instance team. 
 
+### Build and push the terraform-resource-with-az-cli image
+
+A Concourse resource based off [ljfranklin/terraform-resource](https://github.com/ljfranklin/terraform-resource#terraform-concourse-resource) that also includes the Azure [CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+```
+fly -t <target> set-pipeline -p build-and-push-terraform-resource-with-az-cli-image \
+    -c ./pipelines/build-and-push-terraform-resource-with-az-cli-image.yml \
+    --var image-repo-name=<repo-name> \
+    --var registry-username=<user> \
+    --var registry-password=<password>
+fly -t <target> unpause-pipeline -p build-and-push-terraform-resource-with-az-cli-image
+```
+
+* `<target>` is the alias for the connection details to a Concourse instance
+* `<repo-name>` is a container image repository prefix (e.g., docker.io or a private registry like harbor.envy.ironleg.me/library)
+* `<username>` and `<password>` are the credentials of an account with read/write privileges to a  container image registry
+
+> A pre-built container image exists on DockerHub, here: [pacphi/terraform-resource-with-az-cli](https://hub.docker.com/repository/docker/pacphi/terraform-resource-with-az-cli).
+
 ### Build and push the terraform-resource-with-carvel image
 
 A Concourse resource based off [ljfranklin/terraform-resource](https://github.com/ljfranklin/terraform-resource#terraform-concourse-resource) that also includes the Terraform [Carvel](https://carvel.dev/) [plugin](https://github.com/k14s/terraform-provider-k14s/blob/develop/docs/README.md).

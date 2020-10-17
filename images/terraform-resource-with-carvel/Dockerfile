@@ -8,7 +8,11 @@ ENV KAPP_VERSION=0.34.0 \
     TF_PLUGIN_DIR=".terraform.d/plugins" \
     TF_K14S_PLUGIN_VERSION=0.6.0
 
-RUN apk --no-cache add curl && \
+RUN apk --no-cache add curl python3 python3-dev py3-pip && \
+    apk --no-cache add --virtual=build gcc libffi-dev musl-dev openssl-dev make && \
+    pip3 --no-cache-dir install -U pip && \
+    pip3 --no-cache-dir install azure-cli && \
+    apk del --purge build && \
     mkdir -p $HOME/$TF_PLUGIN_DIR/registry.terraform.io/hashicorp/k14s/$TF_K14S_PLUGIN_VERSION && \
     curl -LO "https://github.com/k14s/terraform-provider-k14s/releases/download/v${TF_K14S_PLUGIN_VERSION}/terraform-provider-k14s-binaries.tgz" && \
     tar xzvf terraform-provider-k14s-binaries.tgz -C $HOME/$TF_PLUGIN_DIR/registry.terraform.io/hashicorp/k14s/$TF_K14S_PLUGIN_VERSION && \
