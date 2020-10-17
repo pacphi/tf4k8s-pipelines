@@ -8,7 +8,7 @@ resources:
     branch: main
 
 # Where we will push the image
-- name: terraform-resource-with-carvel-image
+- name: terraform-resource-with-az-cli-image
   type: registry-image
   icon: docker
   source:
