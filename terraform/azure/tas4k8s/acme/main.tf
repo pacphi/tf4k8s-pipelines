@@ -5,10 +5,10 @@ locals {
 module "system_cert" {
   source = "git::https://github.com/pacphi/tf4k8s.git//modules/acme/azure"
 
-  client_id = var.az_client_id
-  client_secret = var.az_client_secret
-  tenant_id = var.az_tenant_id
-  subscription_id = var.az_subscription_id
+  client_id = var.client_id
+  client_secret = var.client_secret
+  tenant_id = var.tenant_id
+  subscription_id = var.subscription_id
   resource_group_name = var.resource_group_name
   email = var.email
   common_name = "*.${local.cf_domain}"
