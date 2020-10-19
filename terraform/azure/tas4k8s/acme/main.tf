@@ -47,24 +47,20 @@ data "azurerm_resource_group" "rg" {
   name = var.resource_group_name
 }
 
-resource "azurerm_storage_account" "sac" {
+data "azurerm_storage_account" "sac" {
   name                     = var.storage_account_name
   resource_group_name      = data.azurerm_resource_group.rg.name
-  location                 = data.azurerm_resource_group.rg.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
 }
 
-resource "azurerm_storage_container" "sc" {
+data "azurerm_storage_container" "sc" {
   name                  = "tf4k8s-pipelines-config"
   storage_account_name  = azurerm_storage_account.sac.name
-  container_access_type = "private"
 }
 
 resource "azurerm_storage_blob" "certs_and_keys" {
   name                   = "${var.path_to_certs_and_keys}/certs-and-keys.vars"
-  storage_account_name   = azurerm_storage_account.sac.name
-  storage_container_name = azurerm_storage_container.sc.name
+  storage_account_name   = data.azurerm_storage_account.sac.name
+  storage_container_name = data.azurerm_storage_container.sc.name
   type                   = "Block"
   source                 = local_file.certs_var_file.filename
 }
