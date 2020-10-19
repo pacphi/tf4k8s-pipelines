@@ -43,7 +43,7 @@ resource "local_file" "certs_var_file" {
   filename = "/tmp/certs-and-keys.vars"
 }
 
-data "azurerm_resource_goup" "rg" {
+data "azurerm_resource_group" "rg" {
   name = var.resource_group_name
 }
 
@@ -86,7 +86,7 @@ variable "resource_group_name" {
 }
 
 variable "storage_account_name" {
-  description = "Specifies the storage account with which to reference/create a storage container."
+  description = "Specifies the storage account with which to reference/create a storage container"
 }
 
 variable "client_id" {
