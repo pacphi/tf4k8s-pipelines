@@ -85,8 +85,6 @@ variable "resource_group_name" {
   description = "A nrame for a resource group; @see https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/manage-resource-groups-portal#what-is-a-resource-group"
 }
 
-//// TODO Add Storage cntainer name variable
-
 variable "client_id" {
   description = "Azure Service Principal appId"
 }
@@ -101,4 +99,13 @@ variable "subscription_id" {
 
 variable "tenant_id" {
   description = "Azure Service Principal tenant"
+}
+
+provider "azurerm" {
+  version = ">=2.30.0"
+  client_id = var.client_id
+  subscription_id = var.subscription_id
+  tenant_id = var.tenant_id
+  client_secret = var.client_secret
+  features {}
 }
