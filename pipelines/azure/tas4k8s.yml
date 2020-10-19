@@ -74,7 +74,7 @@ resources:
       storage_account_name: ((storage_account_name))
       access_key: ((storage_account_key))
       container_name: tf4k8s-pipelines-state
-      key: ((environment_name))/terraform/terraform/k8s/tas4k8s/acme/terraform.tfstate
+      key: ((environment_name))/terraform/k8s/tas4k8s/acme/terraform.tfstate
 
 - name: tas4k8s-tfvars
   type: abs-resource
