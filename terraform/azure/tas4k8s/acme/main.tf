@@ -49,7 +49,7 @@ data "azurerm_resource_group" "rg" {
 
 resource "azurerm_storage_account" "sac" {
   name                     = var.storage_account_name
-  resource_group_name      = var.resource_group_name
+  resource_group_name      = data.azurerm_resource_group.rg.name
   location                 = data.azurerm_resource_group.rg.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -63,7 +63,7 @@ resource "azurerm_storage_container" "sc" {
 
 resource "azurerm_storage_blob" "certs_and_keys" {
   name                   = "${var.path_to_certs_and_keys}/certs-and-keys.vars"
-  storage_account_name   = var.storage_account_name
+  storage_account_name   = azurerm_storage_account.sac.name
   storage_container_name = azurerm_storage_container.sc.name
   type                   = "Block"
   source                 = local_file.certs_var_file.filename
