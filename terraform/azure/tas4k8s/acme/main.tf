@@ -54,7 +54,7 @@ data "azurerm_storage_account" "sac" {
 
 data "azurerm_storage_container" "sc" {
   name                  = "tf4k8s-pipelines-config"
-  storage_account_name  = azurerm_storage_account.sac.name
+  storage_account_name  = data.azurerm_storage_account.sac.name
 }
 
 resource "azurerm_storage_blob" "certs_and_keys" {
