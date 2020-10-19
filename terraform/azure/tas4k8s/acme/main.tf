@@ -85,6 +85,10 @@ variable "resource_group_name" {
   description = "A nrame for a resource group; @see https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/manage-resource-groups-portal#what-is-a-resource-group"
 }
 
+variable "storage_account_name" {
+  description = "Specifies the storage account with which to reference/create a storage container."
+}
+
 variable "client_id" {
   description = "Azure Service Principal appId"
 }
