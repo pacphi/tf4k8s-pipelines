@@ -56,13 +56,13 @@ resource "azurerm_storage_account" "sac" {
 }
 
 resource "azurerm_storage_container" "sc" {
-  name                  = "tf4k8s-pipelines-config/${var.path_to_certs_and_keys}"
+  name                  = "tf4k8s-pipelines-config"
   storage_account_name  = azurerm_storage_account.sac.name
   container_access_type = "private"
 }
 
 resource "azurerm_storage_blob" "certs_and_keys" {
-  name                   = "certs-and-keys.vars"
+  name                   = "${var.path_to_certs_and_keys}/certs-and-keys.vars"
   storage_account_name   = var.storage_account_name
   storage_container_name = azurerm_storage_container.sc.name
   type                   = "Block"
