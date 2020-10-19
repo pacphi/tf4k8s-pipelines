@@ -58,7 +58,7 @@ data "azurerm_storage_container" "sc" {
 }
 
 resource "azurerm_storage_blob" "certs_and_keys" {
-  name                   = "${var.path_to_certs_and_keys}/certs-and-keys.vars"
+  name                   = "${var.path_to_certs_and_keys}"
   storage_account_name   = data.azurerm_storage_account.sac.name
   storage_container_name = data.azurerm_storage_container.sc.name
   type                   = "Block"
