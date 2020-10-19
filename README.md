@@ -289,7 +289,7 @@ fly -t <target> set-pipeline -p install-tas4k8s -c ./pipelines/gcp/terraformer-w
 fly -t <target> unpause-pipeline -p install-tas4k8s
 ```
 
-Admittedly this is a bit of effort to assemble.  To help get you started, visit the [dist](https://github.com/pacphi/tf4k8s-pipelines/tree/main/dist) folder, download and unpack the sample environment templates(s). Make sure to update all occurrences of `REPLACE_ME` within the configuration files. 
+Admittedly this is a bit of effort to assemble.  To help get you started, visit the [dist/concourse](https://github.com/pacphi/tf4k8s-pipelines/tree/main/dist/concourse) folder, download and unpack the sample environment templates(s). Make sure to update all occurrences of `REPLACE_ME` within the configuration files. 
 
 #### Workflow Summary
 
