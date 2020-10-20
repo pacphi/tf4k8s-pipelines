@@ -125,7 +125,7 @@ jobs:
     trigger: true
   - put: acme-tf-state
     params:
-      terraform_source: pipeline-repo/terraform/azure/tas4k8s/acme
+      terraform_source: pipeline-repo/terraform/aws/tas4k8s/acme
       plan_only: true
       var_files: [acme-tfvars/terraform.tfvars]
         
@@ -139,7 +139,7 @@ jobs:
     passed: [acme-tf-plan]
   - put: acme-tf-state
     params:
-      terraform_source: pipeline-repo/terraform/azure/tas4k8s/acme
+      terraform_source: pipeline-repo/terraform/aws/tas4k8s/acme
       plan_run: true
 
 - name: create-tas4k8s-bundle
@@ -184,7 +184,7 @@ jobs:
             mkdir -p tas4k8s-bundle/experiments/k8s/tas4k8s
             mkdir -p tas4k8s-bundle/modules/tas4k8s
             mkdir -p tas4k8s-bundle/ytt-libs/tas4k8s/vendor
-            cp pipeline-repo/terraform/azure/tas4k8s/main.tf tas4k8s-bundle/experiments/k8s/tas4k8s/main.tf
+            cp pipeline-repo/terraform/aws/tas4k8s/main.tf tas4k8s-bundle/experiments/k8s/tas4k8s/main.tf
             cp tas4k8s-tfvars/terraform.tfvars tas4k8s-bundle/experiments/k8s/tas4k8s
             cp -rp source-repo/modules/tas4k8s tas4k8s-bundle/modules
             cp -rp source-repo/ytt-libs/tas4k8s/vendor tas4k8s-bundle/ytt-libs/tas4k8s
@@ -340,7 +340,7 @@ jobs:
     trigger: false
   - put: acme-tf-state
     params:
-      terraform_source: pipeline-repo/terraform/azure/tas4k8s/acme
+      terraform_source: pipeline-repo/terraform/aws/tas4k8s/acme
       action: destroy
       var_files: [acme-tfvars/terraform.tfvars]
     get_params:
