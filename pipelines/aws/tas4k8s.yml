@@ -96,7 +96,7 @@ resources:
   type: terraform
   source:
     env_name: ((environment_name))
-    backend_type: azurerm
+    backend_type: s3
     backend_config:
       bucket: tf4k8s-pipelines-state
       key: ((environment_name))/terraform/k8s/tas4k8s/terraform.tfstate
