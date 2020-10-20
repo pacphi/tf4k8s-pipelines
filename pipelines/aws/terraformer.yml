@@ -31,6 +31,9 @@ resources:
       access_key: ((aws_access_key))
       secret_key: ((aws_secret_key))
       region: ((aws_region))
+    env:
+      AWS_ACCESS_KEY_ID: ((aws_access_key))
+      AWS_SECRET_ACCESS_KEY: ((aws_secret_key))
 
 - name: terraform-vars
   type: s3-resource
