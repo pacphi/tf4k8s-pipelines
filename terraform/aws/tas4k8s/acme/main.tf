@@ -3,7 +3,7 @@ locals {
 }
 
 module "system_cert" {
-  source = "git::https://github.com/pacphi/tf4k8s.git//modules/acme/amazon"
+  source = "git::https://github.com/pacphi/tf4k8s.git//modules/acme/aws"
 
   dns_zone_id = var.dns_zone_id
   email = var.email
@@ -12,7 +12,7 @@ module "system_cert" {
 }
 
 module "workloads_cert" {
-  source = "git::https://github.com/pacphi/tf4k8s.git//modules/acme/amazon"
+  source = "git::https://github.com/pacphi/tf4k8s.git//modules/acme/aws"
 
   dns_zone_id = var.dns_zone_id
   email = var.email
