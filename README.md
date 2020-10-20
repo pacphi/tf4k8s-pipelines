@@ -5,6 +5,7 @@ Sample GitOps pipelines that employ modules from [tf4k8s](https://github.com/pac
 ## Concourse
 
 ![Concourse pipelines screenshot](concourse-pipelines.png?raw=true "Concourse pipelines screenshot")
+![Install TAS4K8s pipeline screenshot](install-tas4k8s.png?raw=true "Install TAS4K8s pipeline screenshot")
 
 You could spin up a local [Concourse](https://concourse-ci.org/install.html) instance for test purposes. Or you might consider employing the [control-tower](https://github.com/EngineerBetter/control-tower) CLI to deploy a self-healing, self-updating Concourse instance with [Grafana](https://grafana.com/) and [CredHub](https://docs.cloudfoundry.org/credhub/) in either AWS or GCP.
 
