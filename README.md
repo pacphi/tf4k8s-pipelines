@@ -293,6 +293,8 @@ Admittedly this is a bit of effort to assemble.  To help get you started, visit 
 
 #### Workflow Summary
 
+* All buckets must have versioning enabled!
+  * Consult the target provider's documentation for how to do this for each bucket created. (e.g., [Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/enable-versioning.html), [Azure Blob Storage](https://docs.microsoft.com/en-us/azure/storage/blobs/versioning-enable?tabs=portal), [Google Cloud Storage](https://cloud.google.com/storage/docs/gsutil/addlhelp/ObjectVersioningandConcurrencyControl))
 * Store secrets like your cloud provider credentials or `./kube/config` (in file format) in a storage bucket.
 * Remember to synchronize your local copy of `t4k8s-pipelines-config` when an addition or update is made to one or more `terraform.tfvars` files.
   * Use `rclone sync` with caution. If you don't want to destroy previous state, use `rclone copy` instead.
