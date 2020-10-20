@@ -43,7 +43,6 @@ resource "aws_s3_bucket_object" "certs_and_keys" {
   bucket = data.aws_s3_bucket.certs_and_keys_bucket.id
   key    = var.path_to_certs_and_keys
   source = local_file.certs_var_file.filename
-  etag = filemd5(local_file.certs_var_file.filename)
 }
 
 variable "email" {
