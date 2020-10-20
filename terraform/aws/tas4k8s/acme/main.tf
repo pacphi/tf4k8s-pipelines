@@ -61,3 +61,12 @@ variable "path_to_certs_and_keys" {
 variable "dns_zone_id" {
   description = "The DNS zone identifier within Amazon Route53 that defines the base domain as an NS record."
 }
+
+variable "region" {
+  description = "The AWS region where an S3 bucket resides to capture certificates and keys in a file (e.g., us-west-2)"
+}
+
+provider "aws" {
+  version = ">=3.9.0"
+  region = var.region
+}
