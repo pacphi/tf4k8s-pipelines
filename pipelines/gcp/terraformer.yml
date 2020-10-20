@@ -79,15 +79,12 @@ jobs:
   plan:
   - get: pipeline-repo
     trigger: false
-    passed: [terraform-apply]
   - get: gcloud-credentials
     trigger: false
-    passed: [terraform-apply]
   - get: terraform-vars
     trigger: false
   - get: terraform-state
     trigger: false
-    passed: [terraform-apply]
   - put: terraform-state
     params:
       terraform_source: pipeline-repo/terraform/((terraform_module))

@@ -325,7 +325,6 @@ jobs:
     trigger: false
   - get: acme-tf-state
     trigger: false
-    passed: [acme-tf-apply]
   - put: acme-tf-state
     params:
       terraform_source: pipeline-repo/terraform/azure/tas4k8s/acme
