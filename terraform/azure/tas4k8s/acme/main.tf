@@ -74,7 +74,7 @@ variable "base_domain" {
 }
 
 variable "path_to_certs_and_keys" {
-  description = "The path underneath the Google Cloud Storage bucket where the certs-and-keys.vars file will be stored."
+  description = "The path underneath the Azure Blob Storage container where the certs-and-keys.vars file will be stored."
 }
 
 variable "resource_group_name" {
