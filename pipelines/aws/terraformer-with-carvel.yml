@@ -51,6 +51,7 @@ resources:
   source:
     access_key_id: ((aws_access_key))
     secret_access_key: ((aws_secret_key))
+    region_name: ((aws_region))
     bucket: s3cr3ts
     versioned_file: ((environment_name))/.kube/config
 
