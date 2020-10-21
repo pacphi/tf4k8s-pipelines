@@ -62,7 +62,7 @@ fly -t <target> unpause-pipeline -p build-and-push-terraform-resource-with-az-cl
 
 * `<target>` is the alias for the connection details to a Concourse instance
 * `<repo-name>` is a container image repository prefix (e.g., docker.io or a private registry like harbor.envy.ironleg.me/library)
-* `<username>` and `<password>` are the credentials of an account with read/write privileges to a  container image registry
+* `<username>` and `<password>` are the credentials of an account with read/write privileges to a container image registry
 
 > A pre-built container image exists on DockerHub, here: [pacphi/terraform-resource-with-az-cli](https://hub.docker.com/repository/docker/pacphi/terraform-resource-with-az-cli).
 
@@ -81,7 +81,7 @@ fly -t <target> unpause-pipeline -p build-and-push-terraform-resource-with-carve
 
 * `<target>` is the alias for the connection details to a Concourse instance
 * `<repo-name>` is a container image repository prefix (e.g., docker.io or a private registry like harbor.envy.ironleg.me/library)
-* `<username>` and `<password>` are the credentials of an account with read/write privileges to a  container image registry
+* `<username>` and `<password>` are the credentials of an account with read/write privileges to a container image registry
 
 > A pre-built container image exists on DockerHub, here: [pacphi/terraform-resource-with-carvel](https://hub.docker.com/repository/docker/pacphi/terraform-resource-with-carvel).
 
@@ -100,10 +100,33 @@ fly -t <target> unpause-pipeline -p build-and-push-bby-image
 
 * `<target>` is the alias for the connection details to a Concourse instance
 * `<repo-name>` is a container image repository prefix (e.g., docker.io or a private registry like harbor.envy.ironleg.me/library)
-* `<username>` and `<password>` are the credentials of an account with read/write privileges to a  container image registry
+* `<username>` and `<password>` are the credentials of an account with read/write privileges to a container image registry
 
 > A pre-built container image exists on DockerHub, here: [pacphi/bby](https://hub.docker.com/repository/docker/pacphi/bby).
 
+### Build and push the terraform-resource-with-tkgi-tkg-tmc image
+
+A Concourse resource based off [ljfranklin/terraform-resource](https://github.com/ljfranklin/terraform-resource#terraform-concourse-resource) that also includes these command-line interfaces: tkg, tkgi and tmc.
+
+```
+fly -t <target> set-pipeline -p build-and-push-terraform-resource-with-tkgi-tkg-tmc-image \
+    -c ./pipelines/build-and-push-terraform-resource-with-tkgi-tkg-tmc-image.yml \
+    --var image-repo-name=<repo-name> \
+    --var registry-username=<user> \
+    --var registry-password=<password> \
+    --var vmw_username=<vmw_username> \
+    --var vmw_password=<vmw_password> \
+    --var tanzu_network_api_token=<tanzu_network_api_token>
+fly -t <target> unpause-pipeline -p terraform-resource-with-tkgi-tkg-tmc-image
+```
+
+* `<target>` is the alias for the connection details to a Concourse instance
+* `<repo-name>` is a container image repository prefix (e.g., docker.io or a private registry like harbor.envy.ironleg.me/library)
+* `<username>` and `<password>` are the credentials of an account with read/write privileges to a container image registry
+* `<vmw_username>` and `<vmw_password>` are the credentials of an account on my.vmwware.com
+* `<tanzu_network_api_token>` is a Tanzu Network legacy token or UAA refresh token
+
+> This image contains commercially licensed software - you'll need to build it yourself and publish in a private container image registry
 
 ### tf4k8s-pipelines: A Guided Tour
 

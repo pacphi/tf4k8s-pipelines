@@ -1,0 +1,45 @@
+resources:
+# The repo with our Dockerfile
+- name: tf4k8s-pipelines-repo
+  type: git
+  icon: github
+  source:
+    uri: https://github.com/pacphi/tf4k8s-pipelines.git
+    branch: main
+
+# Where we will push the image
+- name: terraform-resource-with-tkgi-tkg-tmc-image
+  type: registry-image
+  icon: docker
+  source:
+    repository: ((image-repo-name))/terraform-resource-with-tkgi-tkg-tmc
+    username: ((registry-username))
+    password: ((registry-password))
+
+jobs:
+- name: build-and-push
+  plan:
+  - get: tf4k8s-pipelines-repo
+    trigger: true
+  - task: build-task-image
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: vito/oci-build-task
+      inputs:
+      - name: tf4k8s-pipelines-repo
+      outputs:
+      - name: image
+      params:
+        BUILD_ARG_vmw_username: ((vmw_username))
+        BUILD_ARG_vmw_password: ((vmw_password))
+        BUILD_ARG_tanzu_network_api_token: ((tanzu_network_api_token))
+        CONTEXT: tf4k8s-pipelines-repo/images/terraform-resource-with-tkgi-tkg-tmc
+      run:
+        path: build
+  - put: terraform-resource-with-tkgi-tkg-tmc
+    params:
+      image: image/image.tar
