@@ -1,0 +1,99 @@
+resource_types:
+- name: terraform
+  type: docker-image
+  source:
+    repository: ((terraform_resource_with_tkg_image))
+    tag: latest
+    username: ((registry_username))
+    password: ((registry_password))
+
+- name: abs-resource
+  type: docker-image
+  source:
+    repository: pcfabr/azure-blobstore-resource
+    tag: 0.10.15
+
+resources:
+# The repo that contains Terraform
+- name: pipeline-repo
+  type: git
+  icon: github
+  source:
+    uri: https://github.com/pacphi/tf4k8s-pipelines.git
+    branch: ((pipeline_repo_branch))
+
+- name: terraform-state
+  type: terraform
+  source:
+    env_name: ((environment_name))
+    backend_type: azurerm
+    backend_config:
+      storage_account_name: ((storage_account_name))
+      access_key: ((storage_account_key))
+      container_name: tf4k8s-pipelines-state
+      key: ((environment_name))/terraform/((azure_storage_bucket_folder))/terraform.tfstate
+
+- name: terraform-vars
+  type: abs-resource
+  source:
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: tf4k8s-pipelines-config
+    versioned_file: ((environment_name))/terraform/((azure_storage_bucket_folder))/terraform.tfvars
+
+- name: pk
+  type: abs-resource
+  source:
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: s3cr3ts
+    versioned_file: ((environment_name))/az_rsa.pub
+
+jobs:
+- name: terraform-plan
+  plan:
+  - get: pipeline-repo
+    trigger: true
+  - get: pk
+    trigger: true
+  - get: terraform-vars
+    trigger: true
+  - put: terraform-state
+    params:
+      terraform_source: pipeline-repo/terraform/((terraform_module))
+      plan_only: true
+      var_files: [terraform-vars/terraform.tfvars]
+        
+- name: terraform-apply
+  plan:
+  - get: pipeline-repo
+    trigger: false
+    passed: [terraform-plan]
+  - get: pk
+    trigger: false
+    passed: [terraform-plan]
+  - get: terraform-state
+    trigger: false
+    passed: [terraform-plan]
+  - put: terraform-state
+    params:
+      terraform_source: pipeline-repo/terraform/((terraform_module))
+      plan_run: true
+
+- name: terraform-destroy
+  plan:
+  - get: pipeline-repo
+    trigger: false
+  - get: pk
+    trigger: false
+  - get: terraform-vars
+    trigger: false
+  - get: terraform-state
+    trigger: false
+  - put: terraform-state
+    params:
+      terraform_source: pipeline-repo/terraform/((terraform_module))
+      action: destroy
+      var_files: [terraform-vars/terraform.tfvars]
+    get_params:
+      action: destroy

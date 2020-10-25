@@ -8,11 +8,11 @@ resources:
     branch: main
 
 # Where we will push the image
-- name: terraform-resource-with-tkgi-tkg-tmc-image
+- name: terraform-resource-with-tkg-tmc-image
   type: registry-image
   icon: docker
   source:
-    repository: ((image-repo-name))/terraform-resource-with-tkgi-tkg-tmc
+    repository: ((image-repo-name))/terraform-resource-with-tkg-tmc
     username: ((registry-username))
     password: ((registry-password))
 
@@ -36,10 +36,9 @@ jobs:
       params:
         BUILD_ARG_vmw_username: ((vmw_username))
         BUILD_ARG_vmw_password: ((vmw_password))
-        BUILD_ARG_tanzu_network_api_token: ((tanzu_network_api_token))
-        CONTEXT: tf4k8s-pipelines-repo/images/terraform-resource-with-tkgi-tkg-tmc
+        CONTEXT: tf4k8s-pipelines-repo/images/terraform-resource-with-tkg-tmc
       run:
         path: build
-  - put: terraform-resource-with-tkgi-tkg-tmc
+  - put: terraform-resource-with-tkg-tmc
     params:
       image: image/image.tar
