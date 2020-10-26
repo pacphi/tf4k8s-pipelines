@@ -46,8 +46,8 @@ resources:
   source:
     storage_account_name: ((storage_account_name))
     storage_account_key: ((storage_account_key))
-    container: tf4k8s-pipelines-config
-    versioned_file: ((environment_name))/terraform/((azure_storage_bucket_folder))/confg.yaml
+    container: s3cr3ts
+    versioned_file: ((environment_name))/config.yaml
 
 - name: pk
   type: abs-resource
