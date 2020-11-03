@@ -163,9 +163,8 @@ jobs:
             FILENAME=$(find . -type f -name "tanzu-application-service.*" -print | head -n 1)
             tar -xvf "$FILENAME" -C /tmp
             cd ..
-            DOMAIN=$(sed -n '1p' < tas4k8s-tfvars/terraform.tfvars | cut -d "=" -f 2 | tr -d "\"" | tr -d '[:space:]')
             cd source-repo/ytt-libs/tas4k8s
-            ./scripts/configure-tas4k8s.sh "tas.$DOMAIN"
+            ./scripts/configure-tas4k8s.sh
             ./scripts/cleanup-tas4k8s.sh
             cd ../../..
             mkdir -p tas4k8s-bundle/experiments/k8s/tas4k8s
