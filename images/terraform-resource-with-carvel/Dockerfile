@@ -2,8 +2,9 @@ FROM ljfranklin/terraform-resource:0.13.4
 LABEL author=cphillipson@pivotal.io
 
 ENV AWS_IAM_AUTHENTICATOR_VERSION="1.18.8/2020-09-18" \
+    BOSH_VERSION=6.4.1 \
     KAPP_VERSION=0.34.0 \
-    KBLD_VERSION=0.25.0 \
+    KBLD_VERSION=0.27.0 \
     VENDIR_VERSION=0.10.0 \
     YTT_VERSION=0.30.0 \
     TF_PLUGIN_DIR=".terraform.d/plugins" \
@@ -14,6 +15,9 @@ RUN apk --no-cache add curl python3 python3-dev py3-pip && \
     pip3 --no-cache-dir install -U pip && \
     pip3 --no-cache-dir install azure-cli && \
     apk del --purge build && \
+    wget -O bosh https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-${BOSH_VERSION}-linux-amd64 && \
+    chmod +x bosh && \
+    mv bosh /usr/local/bin && \
     curl -o aws-iam-authenticator "https://amazon-eks.s3.us-west-2.amazonaws.com/${AWS_IAM_AUTHENTICATOR_VERSION}/bin/linux/amd64/aws-iam-authenticator" && \
     chmod +x aws-iam-authenticator && \
     mv aws-iam-authenticator /usr/local/bin && \

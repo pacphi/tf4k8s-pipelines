@@ -1,7 +1,7 @@
 FROM alpine:3.12 
 LABEL author=cphillipson@pivotal.io
 
-ENV BOSH_VERSION=6.4.0 \
+ENV BOSH_VERSION=6.4.1 \
     YTT_VERSION=0.30.0
 
 RUN apk add --no-cache bash gawk sed grep bc coreutils && \
