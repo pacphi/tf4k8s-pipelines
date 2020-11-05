@@ -35,9 +35,24 @@ You'll notice a hierarchical folder structure:
       + z00
     + tf4k8s-pipelines-config
       + z00
+  + tkg
+    + aws
+      + ci
+        + b00
+      + s3cr3ts
+        + b00
+      + tf4k8s-pipelines-config
+        + b00
+    + azure
+      + ci
+        + a00
+      + s3cr3ts
+        + a00
+      + tf4k8s-pipelines-config
+        + a00
 ```
 
-It should be apparent that the second-level folder names are the names of managed Kubernetes offerings in public clouds like Azure and Google.  And the fourth-level folder names are the names of target environments.
+It should be apparent that the second-level folder names are the names of managed Kubernetes offerings in public clouds like Azure and Google.  And the fourth-level folder names are the names of target environments.  (The only exception to this convention is the `tkg` subdirectory tree).
 
 Your job will be to edit various configuration files and replace all occurrences of `REPLACE_ME` with valid values.  You also may want to consider editing the domain and environment (folder) names.
 

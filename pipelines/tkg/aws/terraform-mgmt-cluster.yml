@@ -1,0 +1,89 @@
+resource_types:
+- name: terraform
+  type: docker-image
+  source:
+    repository: ((terraform_resource_with_tkg_image))
+    tag: latest
+    username: ((registry_username))
+    password: ((registry_password))
+
+- name: s3-resource
+  type: docker-image
+  source:
+    repository: concourse/s3-resource
+    tag: 1.1.0
+
+resources:
+# The repo that contains Terraform
+- name: pipeline-repo
+  type: git
+  icon: github
+  source:
+    uri: https://github.com/pacphi/tf4k8s-pipelines.git
+    branch: ((pipeline_repo_branch))
+
+- name: terraform-state
+  type: terraform
+  source:
+    env_name: ((environment_name))
+    backend_type: s3
+    backend_config:
+      bucket: tf4k8s-pipelines-state
+      key: ((environment_name))/terraform/((s3_bucket_folder))/terraform.tfstate
+      access_key: ((aws_access_key))
+      secret_key: ((aws_secret_key))
+      region: ((aws_region))
+    env:
+      AWS_ACCESS_KEY_ID: ((aws_access_key))
+      AWS_SECRET_ACCESS_KEY: ((aws_secret_key))
+
+- name: terraform-vars
+  type: s3-resource
+  source:
+    access_key_id: ((aws_access_key))
+    secret_access_key: ((aws_secret_key))
+    region_name: ((aws_region))
+    bucket: tf4k8s-pipelines-config
+    versioned_file: ((environment_name))/terraform/((s3_bucket_folder))/terraform.tfvars
+
+jobs:
+- name: terraform-plan
+  plan:
+  - get: pipeline-repo
+    trigger: true
+  - get: terraform-vars
+    trigger: true
+  - put: terraform-state
+    params:
+      terraform_source: pipeline-repo/terraform/((terraform_module))
+      plan_only: true
+      var_files: [terraform-vars/terraform.tfvars]
+        
+- name: terraform-apply
+  plan:
+  - get: pipeline-repo
+    trigger: false
+    passed: [terraform-plan]
+  - get: terraform-state
+    trigger: false
+    passed: [terraform-plan]
+  - put: terraform-state
+    params:
+      terraform_source: pipeline-repo/terraform/((terraform_module))
+      plan_run: true
+
+- name: terraform-destroy
+  plan:
+  - get: pipeline-repo
+    trigger: false
+  - get: terraform-vars
+    trigger: false
+  - get: terraform-state
+    trigger: false
+  - put: terraform-state
+    params:
+      terraform_source: pipeline-repo/terraform/((terraform_module))
+      action: destroy
+      var_files: [terraform-vars/terraform.tfvars]
+    get_params:
+      action: destroy
