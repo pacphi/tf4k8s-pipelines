@@ -3,6 +3,7 @@ LABEL author=cphillipson@pivotal.io
 
 ENV AWS_IAM_AUTHENTICATOR_VERSION="1.18.8/2020-09-18" \
     BOSH_VERSION=6.4.1 \
+    KUBECTL_VERSION=0.19.3 \
     KAPP_VERSION=0.34.0 \
     KBLD_VERSION=0.27.0 \
     VENDIR_VERSION=0.10.0 \
@@ -36,4 +37,7 @@ RUN apk --no-cache add curl python3 python3-dev py3-pip && \
     mv kapp /usr/local/bin && \
     wget -O kbld https://github.com/k14s/kbld/releases/download/v${KBLD_VERSION}/kbld-linux-amd64 && \
     chmod +x kbld && \
-    mv kbld /usr/local/bin
+    mv kbld /usr/local/bin && \
+    curl -LO https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl && \
+    chmod +x kubectl && \
+    mv kubectl /usr/local/bin
