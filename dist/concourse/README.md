@@ -41,8 +41,6 @@ It should be apparent that the second-level folder names are the names of manage
 
 Your job will be to edit various configuration files and replace all occurrences of `REPLACE_ME` with valid values.  You also may want to consider editing the domain and environment (folder) names.
 
-&raquo; [home](../../README.md)
-
 
 ## Idiosyncrasies of public clouds
 
@@ -66,3 +64,6 @@ Consult these articles for more information:
 ### Google GKE
 
 The current implementation of the Terraform provider returns cluster credentials without further need to refresh.
+
+
+&raquo; [home](../../README.md)
