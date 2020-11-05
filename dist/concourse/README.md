@@ -4,10 +4,10 @@ You basically have to supply two inputs to all the available Concourse pipeline 
 
 ## Getting Started 
 
-Unpack the file named [concourse-starter-config.tar.gz](concourse-starter-config.tar.gz)
+Unpack the file named [concourse-starter-config.zip](concourse-starter-config.zip)
 
 ```
-tar -xvf concourse-starter-config.tar.gz -C {some_directory}
+unzip concourse-starter-config.tar.gz -d {some_directory}
 ```
 
 You'll notice a hierarchical folder structure:
