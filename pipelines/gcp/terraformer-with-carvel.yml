@@ -28,28 +28,28 @@ resources:
     env_name: ((environment_name))
     backend_type: gcs
     backend_config:
-      bucket: tf4k8s-pipelines-state
+      bucket: tf4k8s-pipelines-state-((uid))
       prefix: ((environment_name))/terraform/((gcp_storage_bucket_folder))
       credentials: ((gcp_account_key_json))
 
 - name: gcloud-credentials
   type: gcs-resource
   source:
-    bucket: s3cr3ts
+    bucket: s3cr3ts-((uid))
     json_key: ((gcp_account_key_json))
     versioned_file: ((environment_name))/gcp-credentials.json
 
 - name: kubeconfig
   type: gcs-resource
   source:
-    bucket: s3cr3ts
+    bucket: s3cr3ts-((uid))
     json_key: ((gcp_account_key_json))
     versioned_file: ((environment_name))/.kube/config
 
 - name: terraform-vars
   type: gcs-resource
   source:
-    bucket: tf4k8s-pipelines-config
+    bucket: tf4k8s-pipelines-config-((uid))
     json_key: ((gcp_account_key_json))
     versioned_file: ((environment_name))/terraform/((gcp_storage_bucket_folder))/terraform.tfvars
 

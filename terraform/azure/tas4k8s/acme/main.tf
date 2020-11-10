@@ -53,7 +53,7 @@ data "azurerm_storage_account" "sac" {
 }
 
 data "azurerm_storage_container" "sc" {
-  name                  = "tf4k8s-pipelines-config"
+  name                  = "tf4k8s-pipelines-config-${var.uid}"
   storage_account_name  = data.azurerm_storage_account.sac.name
 }
 
@@ -99,6 +99,10 @@ variable "subscription_id" {
 
 variable "tenant_id" {
   description = "Azure Service Principal tenant"
+}
+
+variable "uid" {
+  description = "A unique identifier that is appended the to tf4k8s-pipelines-config bucket name.  (Must be the same identifier as defined in Concourse configuration)."
 }
 
 provider "azurerm" {

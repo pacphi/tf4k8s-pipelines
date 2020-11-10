@@ -38,7 +38,7 @@ resource "local_file" "certs_var_file" {
 resource "google_storage_bucket_object" "certs_var_file" {
   name   = var.path_to_certs_and_keys
   source = local_file.certs_var_file.filename
-  bucket = "tf4k8s-pipelines-config"
+  bucket = "tf4k8s-pipelines-config-${var.uid}"
   content_type = "text/plain"
 }
 
@@ -56,4 +56,8 @@ variable "base_domain" {
 
 variable "path_to_certs_and_keys" {
   description = "The path underneath the Google Cloud Storage bucket where the certs-and-keys.vars file will be stored."
+}
+
+variable "uid" {
+  description = "A unique identifier that is appended the to tf4k8s-pipelines-config bucket name.  (Must be the same identifier as defined in Concourse configuration)."
 }

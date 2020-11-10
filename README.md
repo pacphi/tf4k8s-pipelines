@@ -128,7 +128,7 @@ fly -t <target> unpause-pipeline -p terraform-resource-with-tkg-tmc-image
 
 ### tf4k8s-pipelines: A Guided Tour
 
-#### Setup 
+#### Local filesystem setup 
 
 Create a mirrored directory structure as found underneath [tf4k8s/experiments](https://github.com/pacphi/tf4k8s/tree/master/experiments).
 
@@ -186,7 +186,9 @@ Now we'll want to maintain secrets like a) cloud credentials and b) `./kube/conf
 
 Lastly we'll want to maintain state for each Terraform module.  We won't need a local directory, but we can use `rclone` to create a bucket.
 
-Use [rclone](https://rclone.org/) to synchronize your local configuration (and in some instances credentials) with a cloud storage provider of your choice.
+#### Storage bucket setup
+
+We'll use [rclone](https://rclone.org/) to synchronize your local configuration (and in some instances credentials) with a cloud storage provider of your choice.
 
 Execute `rclone config` to configure a target storage provider.
 
@@ -194,20 +196,25 @@ You could create a bucket with `rclone mkdir <target>:<bucket_name>`.
 
 And you could sync with `rclone sync -i /path/to/config <target>:<bucket_name>`
 
+##### A quick note on bucket names
+
+Bucket names **must be unique**!  Be prepared to append a unique identifier to all bucket names.  In the example that follows, replace occurrences of `{uid}` with your own >= 4 and <= 10 character String (taking care to exclude special characters).
+
+
 For example, when working with Google Cloud Storage (GCS)...
 
 ```
-rclone mkdir fe-cphillipson-gcs:s3cr3ts
-rclone sync -i /home/cphillipson/Documents/development/pivotal/tanzu/s3cr3ts fe-cphillipson-gcs:s3cr3ts
-rclone mkdir fe-cphillipson-gcs:tf4k8s-pipelines-config
-rclone sync -i /home/cphillipson/Documents/development/pivotal/tanzu/tf4k8s-pipelines-config fe-cphillipson-gcs:tf4k8s-pipelines-config
-rclone mkdir fe-cphillipson-gcs:tf4k8s-pipelines-state
-rclone mkdir fe-cphillipson-gcs:tas4k8s-bundles
+rclone mkdir fe-cphillipson-gcs:s3cr3ts-{uid}
+rclone sync -i /home/cphillipson/Documents/development/pivotal/tanzu/s3cr3ts fe-cphillipson-gcs:s3cr3ts-{uid}
+rclone mkdir fe-cphillipson-gcs:tf4k8s-pipelines-config-{uid}
+rclone sync -i /home/cphillipson/Documents/development/pivotal/tanzu/tf4k8s-pipelines-config fe-cphillipson-gcs:tf4k8s-pipelines-config-{uid}
+rclone mkdir fe-cphillipson-gcs:tf4k8s-pipelines-state-{uid}
+rclone mkdir fe-cphillipson-gcs:tas4k8s-bundles-{uid}
 
-gsutil versioning set on gs://s3cr3ts
-gsutil versioning set on gs://tf4k8s-pipelines-config
-gsutil versioning set on gs://tf4k8s-pipelines-state
-gsutil versioning set on gs://tas4k8s-bundles
+gsutil versioning set on gs://s3cr3ts-{uid}
+gsutil versioning set on gs://tf4k8s-pipelines-config-{uid}
+gsutil versioning set on gs://tf4k8s-pipelines-state-{uid}
+gsutil versioning set on gs://tas4k8s-bundles-{uid}
 ```
 > * When working with GCS you must enable versioning on each bucket
 
@@ -226,6 +233,7 @@ For convenience we'll want to create a `ci` sub-directory to collect all our con
   + ci
     + n00b
       + gcp
+        - common.yml
         - create-dns.yml
         - create-cluster.yml
         - install-certmanager.yml
@@ -235,40 +243,18 @@ For convenience we'll want to create a `ci` sub-directory to collect all our con
         - install-tas4k8s.yml
 ```
 
-Are you wondering about the content of those files?  Here are a couple examples:
+Are you wondering about the content of those files?  
 
-**create-dns.yml**
+Here are a few examples:
 
-```
-terraform_module: gcp/dns
-pipeline_repo_branch: main
-environment_name: n00b
-gcp_storage_bucket_folder: gcp/dns
-gcp_account_key_json: |
-  {
-    "type": "service_account",
-    "project_id": "REPLACE_ME",
-    "private_key_id": "REPLACE_ME",
-    "private_key": "-----BEGIN PRIVATE KEY-----\nREPLACE_ME\n-----END PRIVATE KEY-----\n",
-    "client_email": "REPLACE_ME.iam.gserviceaccount.com",
-    "client_id": "REPLACE_ME",
-    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-    "token_uri": "https://accounts.google.com/o/oauth2/token",
-    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/REPLACE_ME.iam.gserviceaccount.com"
-  }
-```
-
-**install-harbor.yml**
+**common.yml**
 
 ```
 terraform_resource_with_carvel_image: pacphi/terraform-resource-with-carvel
 registry_username: REPLACE_ME
 registry_password: REPLACE_ME
-terraform_module: k8s/harbor
 pipeline_repo_branch: main
 environment_name: n00b
-gcp_storage_bucket_folder: k8s/harbor
 gcp_account_key_json: |
   {
     "type": "service_account",
@@ -282,32 +268,45 @@ gcp_account_key_json: |
     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
     "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/REPLACE_ME.iam.gserviceaccount.com"
   }
+```
 
+**create-dns.yml**
+
+```
+terraform_module: gcp/dns
+gcp_storage_bucket_folder: gcp/dns
+```
+
+**install-harbor.yml**
+
+```
+terraform_module: k8s/harbor
+gcp_storage_bucket_folder: k8s/harbor
 ```
 
 So putting this into practice, if we wanted to create a new Cloud DNS zone in Google Cloud, we could execute 
 
 ```
-fly -t <target> set-pipeline -p create-dns -c ./pipelines/gcp/terraformer.yml -l ./ci/n00b/gcp/create-dns.yml
+fly -t <target> set-pipeline -p create-dns -c ./pipelines/gcp/terraformer.yml -l ./ci/n00b/gcp/common.yml -l ./ci/n00b/gcp/create-dns.yml
 fly -t <target> unpause-pipeline -p create-dns
 ```
 
 And other pipelines you might execute (in order) to install a TAS 3.0 instance atop a GKE cluster
 
 ```
-fly -t <target> set-pipeline -p create-cluster -c ./pipelines/gcp/terraformer.yml -l ./ci/n00b/gcp/create-cluster.yml
+fly -t <target> set-pipeline -p create-cluster -c ./pipelines/gcp/terraformer.yml -l ./ci/n00b/gcp/common.yml -l ./ci/n00b/gcp/create-cluster.yml
 fly -t <target> unpause-pipeline -p create-cluster
 
-fly -t <target> set-pipeline -p install-certmanager -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/install-certmanager.yml
+fly -t <target> set-pipeline -p install-certmanager -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/common.yml -l ./ci/n00b/gcp/install-certmanager.yml
 fly -t <target> unpause-pipeline -p install-certmanager
-fly -t <target> set-pipeline -p install-nginx-ingress-controller -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/install-nginx-ingress-controller.yml
+fly -t <target> set-pipeline -p install-nginx-ingress-controller -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/common.yml -l ./ci/n00b/gcp/install-nginx-ingress-controller.yml
 fly -t <target> unpause-pipeline -p install-nginx-ingress-controller
-fly -t <target> set-pipeline -p install-external-dns -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/install-external-dns.yml
+fly -t <target> set-pipeline -p install-external-dns -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/common.yml -l ./ci/n00b/gcp/install-external-dns.yml
 fly -t <target> unpause-pipeline -p install-external-dns
-fly -t <target> set-pipeline -p install-harbor -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/install-harbor.yml
+fly -t <target> set-pipeline -p install-harbor -c ./pipelines/gcp/terraformer-with-carvel.yml -l ./ci/n00b/gcp/common.yml -l ./ci/n00b/gcp/install-harbor.yml
 fly -t <target> unpause-pipeline -p install-harbor
 
-fly -t <target> set-pipeline -p install-tas4k8s -c ./pipelines/gcp/tas4k8s.yml -l ./ci/n00b/gcp/install-tas4k8s.yml
+fly -t <target> set-pipeline -p install-tas4k8s -c ./pipelines/gcp/tas4k8s.yml -l ./ci/n00b/gcp/common.yml -l ./ci/n00b/gcp/install-tas4k8s.yml
 fly -t <target> unpause-pipeline -p install-tas4k8s
 ```
 

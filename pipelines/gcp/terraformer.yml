@@ -3,7 +3,7 @@ resource_types:
   type: docker-image
   source:
     repository: ljfranklin/terraform-resource
-    tag: 0.13.4
+    tag: 0.13.5
 
 - name: gcs-resource
   type: docker-image
@@ -26,21 +26,21 @@ resources:
     env_name: ((environment_name))
     backend_type: gcs
     backend_config:
-      bucket: tf4k8s-pipelines-state
+      bucket: tf4k8s-pipelines-state-((uid))
       prefix: ((environment_name))/terraform/((gcp_storage_bucket_folder))
       credentials: ((gcp_account_key_json))
 
 - name: gcloud-credentials
   type: gcs-resource
   source:
-    bucket: s3cr3ts
+    bucket: s3cr3ts-((uid))
     json_key: ((gcp_account_key_json))
     versioned_file: ((environment_name))/gcp-credentials.json
 
 - name: terraform-vars
   type: gcs-resource
   source:
-    bucket: tf4k8s-pipelines-config
+    bucket: tf4k8s-pipelines-config-((uid))
     json_key: ((gcp_account_key_json))
     versioned_file: ((environment_name))/terraform/((gcp_storage_bucket_folder))/terraform.tfvars
 
