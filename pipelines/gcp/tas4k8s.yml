@@ -44,21 +44,21 @@ resources:
 - name: acme-tfvars
   type: gcs-resource
   source:
-    bucket: tf4k8s-pipelines-config
+    bucket: tf4k8s-pipelines-config-((uid))
     json_key: ((gcp_account_key_json))
     versioned_file: ((environment_name))/terraform/k8s/tas4k8s/acme/terraform.tfvars
 
 - name: ck
   type: gcs-resource
   source:
-    bucket: tf4k8s-pipelines-config
+    bucket: tf4k8s-pipelines-config-((uid))
     json_key: ((gcp_account_key_json))
     versioned_file: ((environment_name))/terraform/k8s/tas4k8s/certs-and-keys.vars
 
 - name: tas4k8s-bundles
   type: gcs-resource
   source:
-    bucket: tas4k8s-bundles
+    bucket: tas4k8s-bundles-((uid))
     json_key: ((gcp_account_key_json))
     versioned_file: ((environment_name))/tas4k8s.tar.gz
 
@@ -68,7 +68,7 @@ resources:
     env_name: ((environment_name))
     backend_type: gcs
     backend_config:
-      bucket: tf4k8s-pipelines-state
+      bucket: tf4k8s-pipelines-state-((uid))
       prefix: ((environment_name))/terraform/k8s/tas4k8s/acme
       credentials: ((gcp_account_key_json))
     env:
@@ -77,7 +77,7 @@ resources:
 - name: tas4k8s-tfvars
   type: gcs-resource
   source:
-    bucket: tf4k8s-pipelines-config
+    bucket: tf4k8s-pipelines-config-((uid))
     json_key: ((gcp_account_key_json))
     versioned_file: ((environment_name))/terraform/k8s/tas4k8s/terraform.tfvars
 
@@ -87,21 +87,21 @@ resources:
     env_name: ((environment_name))
     backend_type: gcs
     backend_config:
-      bucket: tf4k8s-pipelines-state
+      bucket: tf4k8s-pipelines-state-((uid))
       prefix: ((environment_name))/terraform/k8s/tas4k8s
       credentials: ((gcp_account_key_json))
 
 - name: gcloud-credentials
   type: gcs-resource
   source:
-    bucket: s3cr3ts
+    bucket: s3cr3ts-((uid))
     json_key: ((gcp_account_key_json))
     versioned_file: ((environment_name))/gcp-credentials.json
 
 - name: kubeconfig
   type: gcs-resource
   source:
-    bucket: s3cr3ts
+    bucket: s3cr3ts-((uid))
     json_key: ((gcp_account_key_json))
     versioned_file: ((environment_name))/.kube/config
 

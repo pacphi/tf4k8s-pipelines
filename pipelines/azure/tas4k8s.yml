@@ -46,7 +46,7 @@ resources:
   source:
     storage_account_name: ((storage_account_name))
     storage_account_key: ((storage_account_key))
-    container: tf4k8s-pipelines-config
+    container: tf4k8s-pipelines-config-((uid))
     versioned_file: ((environment_name))/terraform/k8s/tas4k8s/acme/terraform.tfvars
 
 - name: ck
@@ -54,7 +54,7 @@ resources:
   source:
     storage_account_name: ((storage_account_name))
     storage_account_key: ((storage_account_key))
-    container: tf4k8s-pipelines-config
+    container: tf4k8s-pipelines-config-((uid))
     versioned_file: ((environment_name))/terraform/k8s/tas4k8s/certs-and-keys.vars
 
 - name: tas4k8s-bundles
@@ -62,7 +62,7 @@ resources:
   source:
     storage_account_name: ((storage_account_name))
     storage_account_key: ((storage_account_key))
-    container: tas4k8s-bundles
+    container: tas4k8s-bundles-((uid))
     versioned_file: ((environment_name))/tas4k8s.tar.gz
 
 - name: acme-tf-state
@@ -73,7 +73,7 @@ resources:
     backend_config:
       storage_account_name: ((storage_account_name))
       access_key: ((storage_account_key))
-      container_name: tf4k8s-pipelines-state
+      container_name: tf4k8s-pipelines-state-((uid))
       key: ((environment_name))/terraform/k8s/tas4k8s/acme/terraform.tfstate
 
 - name: tas4k8s-tfvars
@@ -81,7 +81,7 @@ resources:
   source:
     storage_account_name: ((storage_account_name))
     storage_account_key: ((storage_account_key))
-    container: tf4k8s-pipelines-config
+    container: tf4k8s-pipelines-config-((uid))
     versioned_file: ((environment_name))/terraform/k8s/tas4k8s/terraform.tfvars
 
 - name: tas4k8s-tf-state
@@ -92,7 +92,7 @@ resources:
     backend_config:
       storage_account_name: ((storage_account_name))
       access_key: ((storage_account_key))
-      container_name: tf4k8s-pipelines-state
+      container_name: tf4k8s-pipelines-state-((uid))
       key: ((environment_name))/terraform/k8s/tas4k8s/terraform.tfstate
 
 - name: kubeconfig
@@ -100,7 +100,7 @@ resources:
   source:
     storage_account_name: ((storage_account_name))
     storage_account_key: ((storage_account_key))
-    container: s3cr3ts
+    container: s3cr3ts-((uid))
     versioned_file: ((environment_name))/.kube/config
 
 jobs:

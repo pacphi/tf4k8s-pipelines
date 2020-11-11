@@ -36,7 +36,7 @@ resource "local_file" "certs_var_file" {
 }
 
 data "aws_s3_bucket" "certs_and_keys_bucket" {
-  bucket = "tf4k8s-pipelines-config"
+  bucket = "tf4k8s-pipelines-config-${var.uid}"
 }
 
 resource "aws_s3_bucket_object" "certs_and_keys" {
@@ -63,6 +63,10 @@ variable "dns_zone_id" {
 
 variable "region" {
   description = "The AWS region where an S3 bucket resides to capture certificates and keys in a file (e.g., us-west-2)"
+}
+
+variable "uid" {
+  description = "A unique identifier that is appended the to tf4k8s-pipelines-config bucket name.  (Must be the same identifier as defined in Concourse configuration)."
 }
 
 provider "aws" {
