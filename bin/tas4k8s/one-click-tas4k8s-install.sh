@@ -197,11 +197,13 @@ EOF
 )
 
 TAS4K8S_CI_CONFIG=$(cat <<EOF
+current_pipeline_name: install-tas4k8s
 product_version: 3\.1\.0\-build\.*
 bby_image: pacphi/bby
 tanzu_network_api_token: $TANZU_NETWORK_API_TOKEN
 scripts_repo_branch: master
 s3_bucket_folder: harbor
+registry_password_tfvar_name: harbor_admin_password
 EOF
 )
 
@@ -362,11 +364,13 @@ EOF
 )
 
 TAS4K8S_CI_CONFIG=$(cat <<EOF
+current_pipeline_name: install-tas4k8s
 product_version: 3\.1\.0\-build\.*
 bby_image: pacphi/bby
 tanzu_network_api_token: $TANZU_NETWORK_API_TOKEN
 scripts_repo_branch: master
 gcp_storage_bucket_folder: harbor
+registry_password_tfvar_name: harbor_admin_password
 EOF
 )
 

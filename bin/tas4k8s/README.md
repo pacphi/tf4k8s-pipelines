@@ -1,6 +1,6 @@
 # tf4k8s-pipelines TAS4K8S Install
 
-This script simplifies installing tas4k8s on [ AKS, EKS, GKE, and TKG (Azure and AWS only) ] taking full responsibility for provisioning cluster and installing necessary pre-requisites. 
+This script simplifies installing tas4k8s on [ AKS, EKS, GKE, and TKG (Azure and AWS only) ] taking full responsibility for provisioning cluster and installing necessary pre-requisites.  Harbor is the currently integrated container image registry provider.
 
 ## Preparation
 

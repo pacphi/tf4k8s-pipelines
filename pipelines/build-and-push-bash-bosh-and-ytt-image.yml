@@ -5,7 +5,7 @@ resources:
   icon: github
   source:
     uri: https://github.com/pacphi/tf4k8s-pipelines.git
-    branch: main
+    branch: one-click
 
 # Where we will push the image
 - name: bby-image

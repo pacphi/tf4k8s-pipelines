@@ -19,6 +19,12 @@ resource_types:
     repository: pivotalcf/pivnet-resource
     tag: v2.0.1
 
+- name: fly
+  type: docker-image
+  source:
+    repository: troykinsella/concourse-fly-resource
+    tag: 2.0.1
+
 resources:
 - name: pipeline-repo
   type: git
@@ -115,6 +121,16 @@ resources:
     json_key: ((gcp_account_key_json))
     versioned_file: ((environment_name))/.kube/config
 
+- name: fly
+  type: fly
+  source:
+    url: ((concourse_url))
+    username: ((concourse_username))
+    password: ((concourse_password))
+    team: ((concourse_team_name))
+    insecure: ((concourse_is_insecure))
+    debug: ((concourse_is_in_debug_mode))
+
 jobs:
 - name: acme-tf-plan
   plan:
@@ -145,6 +161,11 @@ jobs:
     params:
       terraform_source: pipeline-repo/terraform/gcp/tas4k8s/acme
       plan_run: true
+  on_failure:
+    do:
+      - put: fly
+        params:
+          options: trigger-job -j ((current_pipeline_name))/acme-tf-plan
 
 - name: create-tas4k8s-bundle
   serial: true
@@ -192,7 +213,7 @@ jobs:
             mkdir -p tas4k8s-bundle/ytt-libs/tas4k8s/vendor
             cp pipeline-repo/terraform/gcp/tas4k8s/main.tf tas4k8s-bundle/experiments/k8s/tas4k8s/main.tf
             grep -v "registry_password" tas4k8s-tfvars/terraform.tfvars > tas4k8s-tfvars/terraform.tfvars.new && mv tas4k8s-tfvars/terraform.tfvars.new tas4k8s-tfvars/terraform.tfvars
-            echo "registry_password = $(cat container-registry-state/metadata | jq [.((registry_password))] | grep '"')" >> tas4k8s-tfvars/terraform.tfvars
+            echo "registry_password = $(cat container-registry-state/metadata | jq [.((registry_password_tfvar_name))] | grep '"')" >> tas4k8s-tfvars/terraform.tfvars
             cp tas4k8s-tfvars/terraform.tfvars tas4k8s-bundle/experiments/k8s/tas4k8s
             cp -rp source-repo/modules/tas4k8s tas4k8s-bundle/modules
             cp -rp source-repo/ytt-libs/tas4k8s/vendor tas4k8s-bundle/ytt-libs/tas4k8s
