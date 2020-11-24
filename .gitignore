@@ -36,3 +36,6 @@ override.tf.json
 
 # Concourse
 ci/
+.working/
+one-click-tas4k8s-config.sh
+destroy-pipelines.sh
