@@ -151,9 +151,7 @@ access_key = "$AWS_ACCESS_KEY"
 secret_key = "$AWS_SECRET_KEY"
 region = "$AWS_REGION"
 domain = "$SUB_DOMAIN"
-# TODO Fetch zone id
-# Need to fetch this somehow from Terraform state metadata of create-dns pipeline
-# hosted_zone_id = ""
+hosted_zone_id = ""
 acme_email = "$EMAIL_ADDRESS"
 kubeconfig_path = "/tmp/build/put/kubeconfig/config"
 EOF
@@ -165,6 +163,7 @@ next_pipeline_name: install-nginx-ingress-controller
 next_plan_name: terraform-plan
 terraform_module: $IAAS/certmanager
 s3_bucket_folder: $IAAS/certmanager
+zone_id_variable_name: hosted_zone_id
 EOF
 )
 
@@ -238,14 +237,13 @@ tanzu_network_api_token: $TANZU_NETWORK_API_TOKEN
 scripts_repo_branch: master
 s3_bucket_folder: harbor
 registry_password_tfvar_name: harbor_admin_password
+zone_id_variable_name: dns_zone_id
 EOF
 )
 
 ACME_TFVARS=$(cat <<EOF
 base_domain = "$SUB_DOMAIN"
-# TODO Fetch zone id
-# Need to fetch this somehow from Terraform state metadata of create-dns pipeline
-# dns_zone_id = ""
+dns_zone_id = ""
 email = "$EMAIL_ADDRESS"
 region = "$AWS_REGION"
 path_to_certs_and_keys = "$CONCOURSE_TEAM/terraform/k8s/tas4k8s/certs-and-keys.vars"
@@ -651,7 +649,13 @@ fly -t $CONCOURSE_ALIAS set-team --team-name $CONCOURSE_TEAM --local-user $CONCO
 # Set pipelines
 fly -t $CONCOURSE_ALIAS set-pipeline -p create-dns -c ./pipelines/$IAAS/linkable-terraformer.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/create-dns.yml --team=$CONCOURSE_TEAM --non-interactive
 fly -t $CONCOURSE_ALIAS set-pipeline -p create-cluster -c ./pipelines/$IAAS/linkable-cluster.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/create-cluster.yml --team=$CONCOURSE_TEAM --non-interactive
-fly -t $CONCOURSE_ALIAS set-pipeline -p install-certmanager -c ./pipelines/$IAAS/linkable-terraformer-with-carvel.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/install-certmanager.yml --team=$CONCOURSE_TEAM --non-interactive
+
+if [ "$IAAS" == "aws"]; then
+  fly -t $CONCOURSE_ALIAS set-pipeline -p install-certmanager -c ./pipelines/$IAAS/zone-aware-terraformer-with-carvel.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/install-certmanager.yml --team=$CONCOURSE_TEAM --non-interactive
+else
+  fly -t $CONCOURSE_ALIAS set-pipeline -p install-certmanager -c ./pipelines/$IAAS/linkable-terraformer-with-carvel.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/install-certmanager.yml --team=$CONCOURSE_TEAM --non-interactive
+fi
+
 fly -t $CONCOURSE_ALIAS set-pipeline -p install-nginx-ingress-controller -c ./pipelines/$IAAS/linkable-terraformer-with-carvel.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/install-nginx-ingress-controller.yml --team=$CONCOURSE_TEAM --non-interactive
 fly -t $CONCOURSE_ALIAS set-pipeline -p install-external-dns -c ./pipelines/$IAAS/linkable-terraformer-with-carvel.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/install-external-dns.yml --team=$CONCOURSE_TEAM --non-interactive
 fly -t $CONCOURSE_ALIAS set-pipeline -p install-harbor -c ./pipelines/$IAAS/linkable-terraformer-with-carvel.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/install-harbor.yml --team=$CONCOURSE_TEAM --non-interactive

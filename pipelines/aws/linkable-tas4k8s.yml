@@ -47,6 +47,21 @@ resources:
     product_slug: tas-for-kubernetes
     product_version: ((product_version))
 
+- name: dns-state
+  type: terraform
+  source:
+    env_name: ((environment_name))
+    backend_type: s3
+    backend_config:
+      bucket: tf4k8s-pipelines-state-((uid))
+      key: ((environment_name))/terraform/aws/dns/terraform.tfstate
+      access_key: ((aws_access_key))
+      secret_key: ((aws_secret_key))
+      region: ((aws_region))
+    env:
+      AWS_ACCESS_KEY_ID: ((aws_access_key))
+      AWS_SECRET_ACCESS_KEY: ((aws_secret_key))
+      
 - name: acme-tfvars
   type: s3-resource
   source:
@@ -154,6 +169,28 @@ jobs:
     trigger: true
   - get: acme-tfvars
     trigger: true
+  - get: dns-state
+    trigger: true
+  - task: add-hosted-zone-id
+    config:
+      inputs:
+        - name: terraform-vars
+        - name: dns-state
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: 
+          repository: ((bby_image))
+          tag: latest
+      run:
+        path: sh
+        args:
+          - -exc
+          - |
+            grep -v "((zone_id_variable_name))" terraform-vars/terraform.tfvars > terraform-vars/terraform.tfvars.new && mv terraform-vars/terraform.tfvars.new terraform-vars/terraform.tfvars
+            echo "((zone_id_variable_name)) = $(cat dns-state/metadata | jq [.((zone_id_variable_name))] | grep '"')" >> terraform-vars/terraform.tfvars
+      outputs:
+        - name: terraform-vars
   - put: acme-tf-state
     params:
       terraform_source: pipeline-repo/terraform/aws/tas4k8s/acme
