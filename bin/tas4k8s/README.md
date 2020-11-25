@@ -6,6 +6,8 @@ This script simplifies installing tas4k8s on [ AKS, EKS, GKE, and TKG (Azure and
 
 You'll need a Concourse instance.
 
+Configure [rclone](https://rclone.org/commands/rclone_config/) to interact with a chosen cloud provider's storage API.
+
 Make a copy of the config sample and fill it out for your own purposes with your own credentials.
 
 ```

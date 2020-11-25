@@ -7,6 +7,8 @@ IAAS="REPLACE_ME"
 
 ## General settings
 
+TF4K8S_PIPELINE_REPO_BRANCH="main"
+SERVICE_ACCOUNT_NAME="tf4k8s-sa"
 K8S_ENV="tf4k8s-demo"
 BASE_NAME="REPLACE_ME"
 BASE_DOMAIN="$BASE_NAME.me"
@@ -21,12 +23,24 @@ TANZU_NETWORK_API_TOKEN="REPLACE_ME"
 
 ## AKS specific
 
+AZ_REGION="West US 2"
+AZ_SUBSCRIPTION_ID="REPLACE_ME"
+AZ_TENANT_ID="REPLACE_ME"
+AZ_APP_NAME="$SERVICE_ACCOUNT_NAME"
+# Secret you select here must adhere to Azure's password policy
+AZ_CLIENT_SECRET="REPLACE_ME"
 AZ_RESOURCE_GROUP="REPLACE_ME"
 AZ_STORAGE_ACCOUNT_NAME="REPLACE_ME"
+AZ_STORAGE_ACCOUNT_KEY="REPLACE_ME"
+AKS_NODES=5
+AKS_NODE_TYPE="Standard_D2_v3"
 
 
 ## EKS specific
 
+AWS_SERVICE_ACCOUNT="$SERVICE_ACCOUNT_NAME"
+# @see https://aws.amazon.com/blogs/security/aws-iam-introduces-updated-policy-defaults-for-iam-user-passwords/
+AWS_SERVICE_ACCOUNT_PASSWORD="REPLACE_ME"
 AWS_REGION="us-west-2"
 AWS_ACCESS_KEY="REPLACE_ME"
 AWS_SECRET_KEY="REPLACE_ME"
@@ -44,7 +58,7 @@ SSH_KEY_NAME="REPLACE_ME"
 ## GKE specific
 
 GCP_PROJECT="REPLACE_ME"
-GCP_SERVICE_ACCOUNT="tf4k8s-sa"
+GCP_SERVICE_ACCOUNT="$SERVICE_ACCOUNT_NAME"
 GCP_REGION="us-west1"
 GKE_NODE_TYPE="e2-standard-4"
 GKE_NODES=8
@@ -64,6 +78,7 @@ RCLONE_ALIAS="REPLACE_ME"
 ## Concourse
 
 CONCOURSE_ALIAS="local"
+# If you are running a Docker Compose installation of Concourse do not change the settings below
 CONCOURSE_URL="http://web:8080"
 CONCOURSE_ADMIN_USERNAME="test"
 CONCOURSE_ADMIN_PASSWORD="test"
