@@ -32,6 +32,7 @@ rclone mkdir $RCLONE_ALIAS:tas4k8s-bundles-$SUFFIX
 # Authenticate, create service account, enable bucket versioning
 case "$IAAS" in
   aws | tkg/aws)
+      export AWS_PAGER=""
       # Thanks to https://docs.aws.amazon.com/IAM/latest/UserGuide/getting-started_create-admin-group.html and https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html
       aws configure
       aws iam create-group --group-name Admins
@@ -39,6 +40,10 @@ case "$IAAS" in
       aws iam create-user –-user-name $AWS_SERVICE_ACCOUNT
       aws create-login-profile --username $AWS_SERVICE_ACCOUNT --password $AWS_SERVICE_ACCOUNT_PASSWORD --no-password-reset-required true
       aws iam add-user-to-group --user-name $AWS_SERVICE_ACCOUNT --group-name Admins
+      aws iam create-access-key --user-name $AWS_SERVICE_ACCOUNT > key.txt
+      AWS_ACCESS_KEY=$(cat key.txt | jq -r ".AccessKey.AccessKeyId")
+      AWS_SECRET_KEY=$(cat key.txt | jq -r ".AccessKey.SecretAccessKey")
+      rm -rf key.txt
 
       aws s3api put-bucket-versioning --bucket s3cr3ts-$SUFFIX --versioning-configuration Status=Enabled
       aws s3api put-bucket-versioning --bucket tf4k8s-pipelines-config-$SUFFIX --versioning-configuration Status=Enabled
@@ -50,7 +55,7 @@ case "$IAAS" in
       # Thanks to https://markheath.net/post/create-service-principal-azure-cli
       az login
       az account set -s $AZ_SUBSCRIPTION_ID
-      az ad app create --display-name $AZ_APP_NAME --homepage "http://localhost/$appName"
+      az ad app create --display-name $AZ_APP_NAME --homepage "http://localhost/$AZ_APP_NAME"
       AZ_APP_ID=$(az ad app list --display-name $AZ_APP_NAME --query [].appId -o tsv)
       az ad sp create-for-rbac --name $AZ_APP_ID --password "$AZ_CLIENT_SECRET" --role="Contributor" --scopes="/subscriptions/$AZ_SUBSCRIPTION_ID/resourceGroups/$AZ_RESOURCE_GROUP"
       AZ_CLIENT_ID=$(az ad sp list --display-name $AZ_APP_ID --query "[].appId" -o tsv)
@@ -122,7 +127,7 @@ EOF
 )
 
 DNS_TFVARS=$(cat <<EOF
-base_hosted_zone_id = "$AWS_ROUTE53_BASED_HOSTED_ZONE_ID"
+base_hosted_zone_id = "$AWS_ROUTE53_BASE_HOSTED_ZONE_ID"
 dns_prefix = "$SUB_NAME"
 EOF
 )

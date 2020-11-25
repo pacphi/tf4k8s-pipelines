@@ -42,6 +42,9 @@ AWS_SERVICE_ACCOUNT="$SERVICE_ACCOUNT_NAME"
 # @see https://aws.amazon.com/blogs/security/aws-iam-introduces-updated-policy-defaults-for-iam-user-passwords/
 AWS_SERVICE_ACCOUNT_PASSWORD="REPLACE_ME"
 AWS_REGION="us-west-2"
+# Supply existing administrator credentials here (must have iam:CreateUser)
+# We'll create a new service account that will itself have administrator privileges
+# Values here will be replaced with those of the service account
 AWS_ACCESS_KEY="REPLACE_ME"
 AWS_SECRET_KEY="REPLACE_ME"
 AWS_ROUTE53_BASE_HOSTED_ZONE_ID="REPLACE_ME"
