@@ -4,10 +4,15 @@
 # @author Chris Phillipson
 # @version 1.0
 
-# Pre-requisities
+# Pre-requisities:
+## - *nix OS
+## - Public Internet access
+## - Cloud provider CLI installed (e.g., aws, az, gcloud, tkg)
 ## - Cloud provider account admin credentials
+## - docker and docker-compose installed if you want to run a local Concourse instance
 ## - Concourse instance is up-and-running
-## - Configured rclone to interact with cloud provider storage API
+## - rclone CLI installed
+## - Already configured rclone to interact with cloud provider storage API
 
 # @see https://stackoverflow.com/questions/17484774/indenting-multi-line-output-in-a-shell-script
 indent() { sed 's/^/  /'; }
