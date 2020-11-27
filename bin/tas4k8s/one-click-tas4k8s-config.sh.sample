@@ -38,10 +38,11 @@ AZ_APP_NAME="$SERVICE_ACCOUNT_NAME"
 # Secret you select here must adhere to Azure's password policy
 AZ_CLIENT_SECRET="REPLACE_ME"
 AZ_RESOURCE_GROUP="REPLACE_ME"
+# An existing storage account and key
 AZ_STORAGE_ACCOUNT_NAME="REPLACE_ME"
 AZ_STORAGE_ACCOUNT_KEY="REPLACE_ME"
-AKS_NODES=5
-AKS_NODE_TYPE="Standard_D2_v3"
+AKS_NODES=8
+AKS_NODE_TYPE="Standard_D4s_v3"
 
 
 ## EKS specific
@@ -59,7 +60,7 @@ AWS_SECRET_KEY="REPLACE_ME"
 AWS_ROUTE53_BASE_HOSTED_ZONE_ID="REPLACE_ME"
 EKS_NAME="REPLACE_ME"
 EKS_DESIRED_NODES=5
-EKS_MIN_NODES=5
+EKS_MIN_NODES=8
 EKS_MAX_NODES=10
 EKS_K8S_VERSION="1.18.8-amazon2"
 EKS_NODE_TYPE="t3a.medium"
@@ -75,15 +76,27 @@ GKE_NODE_TYPE="e2-standard-4"
 GKE_NODES=8
 
 
+## TKG specific (applies to all targeted infra)
+
+TKG_PLAN="dev"
+TKG_K8S_VERSION="v1.19.1+vmware.2"
+TKG_CONTROL_PLANE_NODE_COUNT=1
+TKG_WORKER_NODE_COUNT=8
+
+
 ## TKG on AWS specific
 # Be sure to fill out all EKS specific config above too
+AWS_NODE_AZ="us-west1-a"
+AWS_NODE_AZ_1="us-west1-b"
+AWS_NODE_AZ_2="us-west1-c"
+TKG_CONTROL_PLANE_MACHINE_TYPE="m5a.large"
+TKG_WORKER_NODE_MACHINE_TYPE="m5a.xlarge"
+
 
 ## TKG on Azure specific
 # Be sure to fill out all AKS specific config above too
 
 AZ_REGION="westus2"
-TKG_PLAN="dev"
-TKG_K8S_VERSION="v1.19.1+vmware.2"
 TKG_CONTROL_PLANE_MACHINE_TYPE="Standard_D2s_v3"
 TKG_WORKER_NODE_MACHINE_TYPE="Standard_D4s_v3"
 

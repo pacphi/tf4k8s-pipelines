@@ -62,6 +62,7 @@ case "$IAAS" in
       az ad sp create-for-rbac --name $AZ_APP_ID --password "$AZ_CLIENT_SECRET" --role="Contributor" --scopes="/subscriptions/$AZ_SUBSCRIPTION_ID/resourceGroups/$AZ_RESOURCE_GROUP"
       AZ_CLIENT_ID=$(az ad sp list --display-name $AZ_APP_ID --query "[].appId" -o tsv)
       
+      #az storage account create -n $AZ_STORAGE_ACCOUNT_NAME -g $AZ_RESOURCE_GROUP -l $AZ_REGION --sku Standard_LRS
       az storage account blob-service-properties update --enable-versioning -n $AZ_STORAGE_ACCOUNT_NAME -g $AZ_RESOURCE_GROUP
       ;;
       
