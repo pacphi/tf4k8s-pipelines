@@ -2,14 +2,16 @@ resource_types:
 - name: terraform
   type: docker-image
   source:
-    repository: ljfranklin/terraform-resource
-    tag: 0.13.5
+    repository: ((terraform_resource_with_tkg_image))
+    tag: latest
+    username: ((registry_username))
+    password: ((registry_password))
 
-- name: gcs-resource
+- name: abs-resource
   type: docker-image
   source:
-    repository: frodenas/gcs-resource
-    tag: v0.6.0
+    repository: pcfabr/azure-blobstore-resource
+    tag: 0.10.15
 
 - name: fly
   type: docker-image
@@ -30,11 +32,20 @@ resources:
   type: terraform
   source:
     env_name: ((environment_name))
-    backend_type: gcs
+    backend_type: azurerm
     backend_config:
-      bucket: tf4k8s-pipelines-state-((uid))
-      prefix: ((environment_name))/terraform/((gcp_storage_bucket_folder))
-      credentials: ((gcp_account_key_json))
+      storage_account_name: ((storage_account_name))
+      access_key: ((storage_account_key))
+      container_name: tf4k8s-pipelines-state-((uid))
+      key: ((environment_name))/terraform/((azure_storage_bucket_folder))/terraform.tfstate
+
+- name: terraform-vars
+  type: abs-resource
+  source:
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: tf4k8s-pipelines-config-((uid))
+    versioned_file: ((environment_name))/terraform/((azure_storage_bucket_folder))/terraform.tfvars
 
 - name: fly
   type: fly
@@ -46,33 +57,28 @@ resources:
     insecure: ((concourse_is_insecure))
     debug: ((concourse_is_in_debug_mode))
 
-- name: kubeconfig
-  type: gcs-resource
+- name: pk
+  type: abs-resource
   source:
-    bucket: s3cr3ts-((uid))
-    json_key: ((gcp_account_key_json))
-    versioned_file: ((environment_name))/.kube/config
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: s3cr3ts-((uid))
+    versioned_file: ((environment_name))/az_rsa.pub
 
-- name: gcloud-credentials
-  type: gcs-resource
+- name: tkg-config
+  type: abs-resource
   source:
-    bucket: s3cr3ts-((uid))
-    json_key: ((gcp_account_key_json))
-    versioned_file: ((environment_name))/((gcp_service_account_key_filename))
-
-- name: terraform-vars
-  type: gcs-resource
-  source:
-    bucket: tf4k8s-pipelines-config-((uid))
-    json_key: ((gcp_account_key_json))
-    versioned_file: ((environment_name))/terraform/((gcp_storage_bucket_folder))/terraform.tfvars
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: s3cr3ts-((uid))
+    versioned_file: ((environment_name))/.tkg/config.yaml
 
 jobs:
 - name: terraform-plan
   plan:
   - get: pipeline-repo
     trigger: true
-  - get: gcloud-credentials
+  - get: pk
     trigger: true
   - get: terraform-vars
     trigger: true
@@ -90,13 +96,13 @@ jobs:
 - name: terraform-apply
   plan:
   - get: pipeline-repo
-    trigger: true
+    trigger: false
     passed: [terraform-plan]
-  - get: gcloud-credentials
-    trigger: true
+  - get: pk
+    trigger: false
     passed: [terraform-plan]
   - get: terraform-state
-    trigger: true
+    trigger: false
     passed: [terraform-plan]
   - put: terraform-state
     params:
@@ -108,20 +114,20 @@ jobs:
         params:
           options: trigger-job -j ((current_pipeline_name))/terraform-plan
 
-- name: store-kubeconfig
+- name: store-tkg-config
   plan:
   - get: terraform-state
     trigger: true
     passed: [terraform-apply]
-  - get: kubeconfig
+  - get: tkg-config
     trigger: false
   - task: get-cluster-credentials
     config:
       inputs:
         - name: terraform-state
-        - name: kubeconfig
+        - name: tkg-config
       outputs:
-        - name: kubeconfig
+        - name: tkg-config
       platform: linux
       image_resource:
         type: registry-image
@@ -131,43 +137,16 @@ jobs:
         args:
         - -exc
         - |
-          cat terraform-state/metadata | jq -r '.kubeconfig_contents' > kubeconfig/config
-  - put: kubeconfig
+          cat terraform-state/metadata | jq -r '.config_yaml_contents' > .tkg/config.yaml
+  - put: tkg-config
     params:
-      file: kubeconfig/config
-
-- name: smoke-test
-  plan:
-  - get: kubeconfig
-    trigger: true
-    passed: [store-kubeconfig]
-  - task: get-cluster-information
-    config:
-      inputs:
-        - name: kubeconfig
-      platform: linux
-      image_resource:
-        type: registry-image
-        source: { repository: bitnami/kubectl }
-      run:
-        path: sh
-        args:
-        - -exc
-        - |
-          sleep 10
-          kubectl get nodes -o wide --kubeconfig=kubeconfig/config
-          kubectl get pods -o wide --kubeconfig=kubeconfig/config
-  on_failure:
-    do:
-      - put: fly
-        params:
-          options: trigger-job -j ((current_pipeline_name))/smoke-test
+      file: tkg-config/.tkg/config.yaml
 
 - name: terraform-destroy
   plan:
   - get: pipeline-repo
     trigger: false
-  - get: gcloud-credentials
+  - get: pk
     trigger: false
   - get: terraform-vars
     trigger: false
@@ -183,9 +162,9 @@ jobs:
 
 - name: trigger-next-pipeline-job
   plan:
-  - get: kubeconfig
+  - get: tkg-config
     trigger: true
-    passed: [smoke-test]
+    passed: [store-tkg-config]
   - put: fly
     params:
       options: unpause-pipeline -p ((next_pipeline_name))

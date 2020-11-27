@@ -7,6 +7,14 @@ IAAS="REPLACE_ME"
 
 ## General settings
 
+CARVEL_IMAGE="pacphi/terraform-resource-with-carvel"
+TKG_IMAGE="pacphi/terraform-resource-with-tkg-tmc"
+
+# Create pipelines config parent directory
+TF4K8S_PIPELINES_CONFIG_PARENT_DIR=".tf4k8s"
+
+# Use a regex to define the product version of Tanzu Application Service for Kubernetes (available on the Tanzu Network)
+TAS4K8S_VERSION="3\.1\.0\-build\.*"
 TF4K8S_PIPELINE_REPO_BRANCH="main"
 SERVICE_ACCOUNT_NAME="tf4k8s-sa"
 K8S_ENV="tf4k8s-demo"
@@ -42,6 +50,7 @@ AWS_SERVICE_ACCOUNT="$SERVICE_ACCOUNT_NAME"
 # @see https://aws.amazon.com/blogs/security/aws-iam-introduces-updated-policy-defaults-for-iam-user-passwords/
 AWS_SERVICE_ACCOUNT_PASSWORD="REPLACE_ME"
 AWS_REGION="us-west-2"
+AWS_ZONES=["us-west-2a", "us-west-2b", "us-west-2c"]
 # Supply existing administrator credentials here (must have iam:CreateUser)
 # We'll create a new service account that will itself have administrator privileges
 # Values here will be replaced with those of the service account
@@ -53,7 +62,6 @@ EKS_DESIRED_NODES=5
 EKS_MIN_NODES=5
 EKS_MAX_NODES=10
 EKS_K8S_VERSION="1.18.8-amazon2"
-AWS_ZONES=["us-west-2a", "us-west-2b", "us-west-2c"]
 EKS_NODE_TYPE="t3a.medium"
 SSH_KEY_NAME="REPLACE_ME"
 
@@ -68,9 +76,16 @@ GKE_NODES=8
 
 
 ## TKG on AWS specific
-
+# Be sure to fill out all EKS specific config above too
 
 ## TKG on Azure specific
+# Be sure to fill out all AKS specific config above too
+
+AZ_REGION="westus2"
+TKG_PLAN="dev"
+TKG_K8S_VERSION="v1.19.1+vmware.2"
+TKG_CONTROL_PLANE_MACHINE_TYPE="Standard_D2s_v3"
+TKG_WORKER_NODE_MACHINE_TYPE="Standard_D4s_v3"
 
 
 ## rclone

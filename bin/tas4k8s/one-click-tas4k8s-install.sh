@@ -4,11 +4,12 @@
 # @author Chris Phillipson
 # @version 1.0
 
-# Pre-requisities:
+# Prerequisities:
 ## - *nix OS
 ## - Public Internet access
 ## - Cloud provider CLI installed (e.g., aws, az, gcloud, tkg)
 ## - Cloud provider account admin credentials
+## - Tanzu Network credentials and API token
 ## - docker and docker-compose installed if you want to run a local Concourse instance
 ## - Concourse instance is up-and-running
 ## - rclone CLI installed
@@ -17,10 +18,6 @@
 # @see https://stackoverflow.com/questions/17484774/indenting-multi-line-output-in-a-shell-script
 indent() { sed 's/^/  /'; }
 
-CARVEL_IMAGE="pacphi/terraform-resource-with-carvel"
-
-# Create pipelines config parent directory
-TF4K8S_PIPELINES_CONFIG_PARENT_DIR=".tf4k8s"
 mkdir -p $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR
 
 source $PWD/bin/tas4k8s/one-click-tas4k8s-config.sh
@@ -231,7 +228,7 @@ EOF
 
 TAS4K8S_CI_CONFIG=$(cat <<EOF
 current_pipeline_name: install-tas4k8s
-product_version: 3\.1\.0\-build\.*
+product_version: $TAS4K8S_VERSION
 bby_image: pacphi/bby
 tanzu_network_api_token: $TANZU_NETWORK_API_TOKEN
 scripts_repo_branch: master
@@ -406,7 +403,7 @@ EOF
 
 TAS4K8S_CI_CONFIG=$(cat <<EOF
 current_pipeline_name: install-tas4k8s
-product_version: 3\.1\.0\-build\.*
+product_version: $TAS4K8S_VERSION
 bby_image: pacphi/bby
 tanzu_network_api_token: $TANZU_NETWORK_API_TOKEN
 scripts_repo_branch: master
@@ -575,7 +572,7 @@ EOF
 
 TAS4K8S_CI_CONFIG=$(cat <<EOF
 current_pipeline_name: install-tas4k8s
-product_version: 3\.1\.0\-build\.*
+product_version: $TAS4K8S_VERSION
 bby_image: pacphi/bby
 tanzu_network_api_token: $TANZU_NETWORK_API_TOKEN
 scripts_repo_branch: master
@@ -588,6 +585,388 @@ ACME_TFVARS=$(cat <<EOF
 email = "$EMAIL_ADDRESS"
 base_domain = "$SUB_DOMAIN"
 project = "$GCP_PROJECT"
+path_to_certs_and_keys = "$CONCOURSE_TEAM/terraform/k8s/tas4k8s/certs-and-keys.vars"
+uid = "$SUFFIX"
+EOF
+)
+
+fi
+
+if [ "$IAAS" == "tkg/aws" ]; then
+
+COMMON_CI_CONFIG=$(cat <<EOF
+uid: $SUFFIX
+concourse_url: $CONCOURSE_URL
+concourse_username: $CONCOURSE_ADMIN_USERNAME
+concourse_password: $CONCOURSE_ADMIN_PASSWORD
+concourse_team_name: $CONCOURSE_TEAM
+concourse_is_insecure: $IS_CONCOURSE_INSECURE
+concourse_is_in_debug_mode: $IS_CONCOURSE_IN_DEBUG_MODE
+terraform_resource_with_tkg_image: $TKG_IMAGE
+terraform_resource_with_carvel_image: $CARVEL_IMAGE
+registry_username: ""
+registry_password: ""
+pipeline_repo_branch: $TF4K8S_PIPELINE_REPO_BRANCH
+environment_name: $CONCOURSE_TEAM
+aws_region: $AWS_REGION
+aws_access_key: $AWS_ACCESS_KEY
+aws_secret_key: $AWS_SECRET_KEY
+EOF
+)
+
+MGMT_CLUSTER_TFVARS=$(cat <<EOF
+path_to_tkg_config_yaml = "~/.tf4k8s/tkg/$CONCOURSE_TEAM/config.yaml"
+aws_ssh_key_name = "tkg-aws-$AWS_REGION.pem"
+tkg_plan = "$TKG_PLAN"
+tkg_kubernetes_version = "$TKG_K8S_VERSION"
+control_plan_machine_type = "$TKG_CONTROL_PLANE_MACHINE_TYPE"
+node_machine_type = "$TKG_WORKER_NODE_MACHINE_TYPE"
+aws_node_az = "$AWS_NODE_AZ"
+aws_node_az_1 = "$AWS_NODE_AZ_1"
+aws_node_az_2 = "$AWS_NODE_AZ_2"
+aws_secret_key_id = "$AWS_ACCESS_KEY"
+aws_secret_access_key = "$AWS_SECRET_KEY"
+EOF
+)
+
+MGMT_CLUSTER_CI_CONFIG=$(cat <<EOF
+current_pipeline_name: create-management-cluster
+next_pipeline_name: create-workload-cluster
+next_plan_name: terraform-plan
+terraform_module: $IAAS/cluster
+s3_bucket_folder: $IAAS/cluster
+EOF
+)
+
+WKLD_CLUSTER_CI_CONFIG=$(cat <<EOF
+current_pipeline_name: create-workload-cluster
+next_pipeline_name: install-certmanager
+next_plan_name: terraform-plan
+terraform_module: $IAAS/cluster
+s3_bucket_folder: $IAAS/cluster
+EOF
+)
+
+WKLD_CLUSTER_TFVARS=$(cat <<EOF
+environment = "$CONCOURSE_TEAM"
+path_to_tkg_config_yaml = "/tmp/build/put/tkg-config/config.yaml"
+tkg_plan = "$TKG_PLAN"
+tkg_control_plane_node_count = $TKG_CONTROL_PLANE_NODE_COUNT
+tkg_worker_node_count = $TKG_WORKER_NODE_COUNT
+EOF
+)
+
+DNS_TFVARS=$(cat <<EOF
+base_hosted_zone_id = "$AWS_ROUTE53_BASE_HOSTED_ZONE_ID"
+dns_prefix = "$SUB_NAME"
+EOF
+)
+
+DNS_CI_CONFIG=$(cat <<EOF
+current_pipeline_name: create-dns
+next_pipeline_name: create-cluster
+next_plan_name: terraform-plan
+terraform_module: $IAAS/dns
+s3_bucket_folder: $IAAS/dns
+EOF
+)
+
+CERTMGR_TFVARS=$(cat <<EOF
+access_key = "$AWS_ACCESS_KEY"
+secret_key = "$AWS_SECRET_KEY"
+region = "$AWS_REGION"
+domain = "$SUB_DOMAIN"
+hosted_zone_id = ""
+acme_email = "$EMAIL_ADDRESS"
+kubeconfig_path = "/tmp/build/put/kubeconfig/config"
+EOF
+)
+
+CERTMGR_CI_CONFIG=$(cat <<EOF
+current_pipeline_name: install-certmanager
+next_pipeline_name: install-nginx-ingress-controller
+next_plan_name: terraform-plan
+terraform_module: $IAAS/certmanager
+s3_bucket_folder: $IAAS/certmanager
+zone_id_variable_name: hosted_zone_id
+EOF
+)
+
+EXTERNAL_DNS_TFVARS=$(cat <<EOF
+domain_filter = "$SUB_DOMAIN"
+aws_access_key = "$AWS_ACCESS_KEY"
+aws_secret_key = "$AWS_SECRET_KEY"
+region = "$AWS_REGION"
+kubeconfig_path = "/tmp/build/put/kubeconfig/config"
+EOF
+)
+
+EXTERNAL_DNS_CI_CONFIG=$(cat <<EOF
+current_pipeline_name: install-external-dns
+next_pipeline_name: install-harbor
+next_plan_name: terraform-plan
+terraform_module: $IAAS/external-dns
+s3_bucket_folder: $IAAS/external-dns
+EOF
+)
+
+HARBOR_TFVARS=$(cat <<EOF
+domain = "$SUB_DOMAIN"
+ingress = "nginx"
+kubeconfig_path = "/tmp/build/put/kubeconfig/config"
+EOF
+)
+
+HARBOR_CI_CONFIG=$(cat <<EOF
+current_pipeline_name: install-harbor
+next_pipeline_name: install-tas4k8s
+next_plan_name: acme-tf-plan
+terraform_module: k8s/harbor
+s3_bucket_folder: k8s/harbor
+EOF
+)
+
+NIC_TFVARS=$(cat <<EOF
+kubeconfig_path = "/tmp/build/put/kubeconfig/config"
+EOF
+)
+
+NIC_CI_CONFIG=$(cat <<EOF
+current_pipeline_name: install-nginx-ingress-controller
+next_pipeline_name: install-external-dns
+next_plan_name: terraform-plan
+terraform_module: k8s/nginx-ingress-controller
+s3_bucket_folder: k8s/nginx-ingress-controller
+EOF
+)
+
+TAS4K8S_TFVARS=$(cat <<EOF
+base_domain = "$SUB_DOMAIN"
+registry_domain = "harbor.$SUB_DOMAIN"
+repository_prefix = "harbor.$SUB_DOMAIN/library"
+registry_username = "admin"
+registry_password = ""
+pivnet_username = "$EMAIL_ADDRESS"
+pivnet_password = "$TANZU_NETWORK_ACCOUNT_PASSWORD"
+kubeconfig_path = "/tmp/build/put/kubeconfig/config"
+path_to_certs_and_keys = "/tmp/build/put/ck/certs-and-keys.vars"
+ytt_lib_dir = "/tmp/build/put/tas4k8s-repo/ytt-libs"
+EOF
+)
+
+TAS4K8S_CI_CONFIG=$(cat <<EOF
+current_pipeline_name: install-tas4k8s
+product_version: $TAS4K8S_VERSION
+bby_image: pacphi/bby
+tanzu_network_api_token: $TANZU_NETWORK_API_TOKEN
+scripts_repo_branch: master
+s3_bucket_folder: harbor
+registry_password_tfvar_name: harbor_admin_password
+zone_id_variable_name: dns_zone_id
+EOF
+)
+
+ACME_TFVARS=$(cat <<EOF
+base_domain = "$SUB_DOMAIN"
+dns_zone_id = ""
+email = "$EMAIL_ADDRESS"
+region = "$AWS_REGION"
+path_to_certs_and_keys = "$CONCOURSE_TEAM/terraform/k8s/tas4k8s/certs-and-keys.vars"
+uid = "$SUFFIX"
+EOF
+)
+
+fi
+
+if [ "$IAAS" == "tkg/azure" ]; then
+
+COMMON_CI_CONFIG=$(cat <<EOF
+uid: $SUFFIX
+concourse_url: $CONCOURSE_URL
+concourse_username: $CONCOURSE_ADMIN_USERNAME
+concourse_password: $CONCOURSE_ADMIN_PASSWORD
+concourse_team_name: $CONCOURSE_TEAM
+concourse_is_insecure: $IS_CONCOURSE_INSECURE
+concourse_is_in_debug_mode: $IS_CONCOURSE_IN_DEBUG_MODE
+terraform_resource_with_tkg_image: $TKG_IMAGE
+terraform_resource_with_carvel_image: $CARVEL_IMAGE
+registry_username: ""
+registry_password: ""
+pipeline_repo_branch: $TF4K8S_PIPELINE_REPO_BRANCH
+environment_name: $CONCOURSE_TEAM
+storage_account_name: $AZ_STORAGE_ACCOUNT_NAME
+storage_account_key: $AZ_STORAGE_ACCOUNT_KEY
+EOF
+)
+
+MGMT_CLUSTER_TFVARS=$(cat <<EOF
+az_resource_group = "$AZ_RESOURCE_GROUP"
+path_to_tkg_config_yaml = "~/.tf4k8s/tkg/$CONCOURSE_TEAM/config.yaml"
+path_to_az_ssh_public_key = "/tmp/build/put/pk/az_rsa.pub"
+az_location = $AZ_REGION
+az_subscription_id = $AZ_SUBSCRIPTION_ID
+az_tenant_id = "$AZ_TENANT_ID"
+az_client_id = "$AZ_CLIENT_ID"
+az_client_secret = "$AZ_CLIENT_SECRET"
+tkg_plan = "$TKG_PLAN"
+tkg_kubernetes_version = "$TKG_K8S_VERSION"
+control_plan_machine_type = "$TKG_CONTROL_PLANE_MACHINE_TYPE"
+node_machine_type = "$TKG_WORKER_NODE_MACHINE_TYPE"
+EOF
+)
+
+MGMT_CLUSTER_CI_CONFIG=$(cat <<EOF
+current_pipeline_name: create-management-cluster
+next_pipeline_name: create-workload-cluster
+next_plan_name: terraform-plan
+terraform_module: $IAAS/cluster
+azure_storage_bucket_folder: $IAAS/cluster
+EOF
+)
+
+WKLD_CLUSTER_CI_CONFIG=$(cat <<EOF
+current_pipeline_name: create-workload-cluster
+next_pipeline_name: install-certmanager
+next_plan_name: terraform-plan
+terraform_module: $IAAS/cluster
+azure_storage_bucket_folder: $IAAS/cluster
+EOF
+)
+
+WKLD_CLUSTER_TFVARS=$(cat <<EOF
+environment = "$CONCOURSE_TEAM"
+path_to_tkg_config_yaml = "/tmp/build/put/tkg-config/config.yaml"
+tkg_plan = "$TKG_PLAN"
+tkg_control_plane_node_count = $TKG_CONTROL_PLANE_NODE_COUNT
+tkg_worker_node_count = $TKG_WORKER_NODE_COUNT
+EOF
+)
+
+DNS_TFVARS=$(cat <<EOF
+base_domain = "$BASE_DOMAIN"
+domain_prefix = "$SUB_NAME"
+resource_group_name = "$AZ_RESOURCE_GROUP"
+az_subscription_id = "$AZ_SUBSCRIPTION_ID"
+az_tenant_id = "$AZ_TENANT_ID"
+az_client_id = "$AZ_CLIENT_ID"
+az_client_secret = "$AZ_CLIENT_SECRET"
+EOF
+)
+
+DNS_CI_CONFIG=$(cat <<EOF
+current_pipeline_name: create-dns
+next_pipeline_name: create-cluster
+next_plan_name: terraform-plan
+terraform_module: $IAAS/dns
+azure_storage_bucket_folder: $IAAS/dns
+EOF
+)
+
+CERTMGR_TFVARS=$(cat <<EOF
+az_subscription_id = "$AZ_SUBSCRIPTION_ID"
+az_tenant_id = "$AZ_TENANT_ID"
+az_client_id = "$AZ_CLIENT_ID"
+az_client_secret = "$AZ_CLIENT_SECRET"
+cluster_issuer_resource_group = "$AZ_RESOURCE_GROUP"
+domain = "$SUB_DOMAIN"
+acme_email = "$EMAIL_ADDRESS"
+kubeconfig_path = "/tmp/build/put/kubeconfig/config"
+EOF
+)
+
+CERTMGR_CI_CONFIG=$(cat <<EOF
+current_pipeline_name: install-certmanager
+next_pipeline_name: install-nginx-ingress-controller
+next_plan_name: terraform-plan
+terraform_module: $IAAS/certmanager
+azure_storage_bucket_folder: $IAAS/certmanager
+EOF
+)
+
+EXTERNAL_DNS_TFVARS=$(cat <<EOF
+domain_filter = "$SUB_DOMAIN"
+resource_group_name = "$AZ_RESOURCE_GROUP"
+az_subscription_id = "$AZ_SUBSCRIPTION_ID"
+az_tenant_id = "$AZ_TENANT_ID"
+az_client_id = "$AZ_CLIENT_ID"
+az_client_secret = "$AZ_CLIENT_SECRET"
+kubeconfig_path = "/tmp/build/put/kubeconfig/config"
+EOF
+)
+
+EXTERNAL_DNS_CI_CONFIG=$(cat <<EOF
+current_pipeline_name: install-external-dns
+next_pipeline_name: install-harbor
+next_plan_name: terraform-plan
+terraform_module: $IAAS/external-dns
+azure_storage_bucket_folder: $IAAS/external-dns
+EOF
+)
+
+HARBOR_TFVARS=$(cat <<EOF
+domain = "$SUB_DOMAIN"
+ingress = "nginx"
+kubeconfig_path = "/tmp/build/put/kubeconfig/config"
+EOF
+)
+
+HARBOR_CI_CONFIG=$(cat <<EOF
+current_pipeline_name: install-harbor
+next_pipeline_name: install-tas4k8s
+next_plan_name: acme-tf-plan
+terraform_module: k8s/harbor
+azure_storage_bucket_folder: k8s/harbor
+EOF
+)
+
+NIC_TFVARS=$(cat <<EOF
+kubeconfig_path = "/tmp/build/put/kubeconfig/config"
+EOF
+)
+
+NIC_CI_CONFIG=$(cat <<EOF
+current_pipeline_name: install-nginx-ingress-controller
+next_pipeline_name: install-external-dns
+next_plan_name: terraform-plan
+terraform_module: k8s/nginx-ingress-controller
+azure_storage_bucket_folder: k8s/nginx-ingress-controller
+EOF
+)
+
+TAS4K8S_TFVARS=$(cat <<EOF
+base_domain = "$SUB_DOMAIN"
+registry_domain = "harbor.$SUB_DOMAIN"
+repository_prefix = "harbor.$SUB_DOMAIN/library"
+registry_username = "admin"
+registry_password = ""
+pivnet_username = "$EMAIL_ADDRESS"
+pivnet_password = "$TANZU_NETWORK_ACCOUNT_PASSWORD"
+kubeconfig_path = "/tmp/build/put/kubeconfig/config"
+path_to_certs_and_keys = "/tmp/build/put/ck/certs-and-keys.vars"
+ytt_lib_dir = "/tmp/build/put/tas4k8s-repo/ytt-libs"
+EOF
+)
+
+TAS4K8S_CI_CONFIG=$(cat <<EOF
+current_pipeline_name: install-tas4k8s
+product_version: $TAS4K8S_VERSION
+bby_image: pacphi/bby
+tanzu_network_api_token: $TANZU_NETWORK_API_TOKEN
+scripts_repo_branch: master
+azure_storage_bucket_folder: harbor
+registry_password_tfvar_name: harbor_admin_password
+EOF
+)
+
+ACME_TFVARS=$(cat <<EOF
+base_domain = "$SUB_DOMAIN"
+email = "$EMAIL_ADDRESS"
+storage_account_name = "$AZ_STORAGE_ACCOUNT_NAME"
+subscription_id = "$AZ_SUBSCRIPTION_ID"
+tenant_id = "$AZ_TENANT_ID"
+client_id = "$AZ_CLIENT_ID"
+client_secret = "$AZ_CLIENT_SECRET"
+resource_group_name = "$AZ_RESOURCE_GROUP"
 path_to_certs_and_keys = "$CONCOURSE_TEAM/terraform/k8s/tas4k8s/certs-and-keys.vars"
 uid = "$SUFFIX"
 EOF
@@ -647,8 +1026,16 @@ fly -t $CONCOURSE_ALIAS login --concourse-url $CONCOURSE_ENDPOINT -u $CONCOURSE_
 fly -t $CONCOURSE_ALIAS set-team --team-name $CONCOURSE_TEAM --local-user $CONCOURSE_ADMIN_USERNAME --non-interactive
 
 # Set pipelines
+if [ "$IAAS" == "tkg/azure"] || [ "$IAAS" == "tkg/aws"]; then
+  fly -t $CONCOURSE_ALIAS set-pipeline -p create-management-cluster -c ./pipelines/$IAAS/linkable-terraform-mgmt-cluster.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/create-mgmt-cluster.yml --team=$CONCOURSE_TEAM --non-interactive
+  fly -t $CONCOURSE_ALIAS set-pipeline -p create-workload-cluster -c ./pipelines/$IAAS/linkable-terraform-workload-cluster.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/create-workload-cluster.yml --team=$CONCOURSE_TEAM --non-interactive
+  TKG_IAAS="$(cut -d'/' -f2 <<<"$IAAS")"
+  IAAS=$TKG_IAAS
+else
+  fly -t $CONCOURSE_ALIAS set-pipeline -p create-cluster -c ./pipelines/$IAAS/linkable-cluster.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/create-cluster.yml --team=$CONCOURSE_TEAM --non-interactive
+fi
+
 fly -t $CONCOURSE_ALIAS set-pipeline -p create-dns -c ./pipelines/$IAAS/linkable-terraformer.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/create-dns.yml --team=$CONCOURSE_TEAM --non-interactive
-fly -t $CONCOURSE_ALIAS set-pipeline -p create-cluster -c ./pipelines/$IAAS/linkable-cluster.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/create-cluster.yml --team=$CONCOURSE_TEAM --non-interactive
 
 if [ "$IAAS" == "aws"]; then
   fly -t $CONCOURSE_ALIAS set-pipeline -p install-certmanager -c ./pipelines/$IAAS/zone-aware-terraformer-with-carvel.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/install-certmanager.yml --team=$CONCOURSE_TEAM --non-interactive

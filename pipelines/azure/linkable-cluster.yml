@@ -136,7 +136,6 @@ jobs:
         - -exc
         - |
           cat terraform-state/metadata | jq -r '.kubeconfig_contents' > kubeconfig/config
-          cat terraform-state/metadata | jq -r '.gke_cluster_name' > cluster_info.txt
   - put: kubeconfig
     params:
       file: kubeconfig/config
