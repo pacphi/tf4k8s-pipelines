@@ -37,6 +37,7 @@ AZ_TENANT_ID="REPLACE_ME"
 AZ_APP_NAME="$SERVICE_ACCOUNT_NAME"
 # Secret you select here must adhere to Azure's password policy
 AZ_CLIENT_SECRET="REPLACE_ME"
+# An existing resource group
 AZ_RESOURCE_GROUP="REPLACE_ME"
 # An existing storage account and key
 AZ_STORAGE_ACCOUNT_NAME="REPLACE_ME"
