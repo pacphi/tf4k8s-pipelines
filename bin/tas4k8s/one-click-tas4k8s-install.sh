@@ -59,7 +59,8 @@ case "$IAAS" in
       az account set -s $AZ_SUBSCRIPTION_ID
       az ad app create --display-name $AZ_APP_NAME --homepage "http://localhost/$AZ_APP_NAME"
       AZ_APP_ID=$(az ad app list --display-name $AZ_APP_NAME --query [].appId -o tsv)
-      az ad sp create-for-rbac --name $AZ_APP_ID --password "$AZ_CLIENT_SECRET" --role="Contributor" --scopes="/subscriptions/$AZ_SUBSCRIPTION_ID/resourceGroups/$AZ_RESOURCE_GROUP"
+      az ad sp create-for-rbac --name $AZ_APP_ID --role="Contributor" --scopes="/subscriptions/$AZ_SUBSCRIPTION_ID/resourceGroups/$AZ_RESOURCE_GROUP"
+      az ad sp credential reset --name "$AZ_APP_ID" --password "${CLIENT_SECRET}"
       AZ_CLIENT_ID=$(az ad sp list --display-name $AZ_APP_ID --query "[].appId" -o tsv)
       
       #az storage account create -n $AZ_STORAGE_ACCOUNT_NAME -g $AZ_RESOURCE_GROUP -l $AZ_REGION --sku Standard_LRS
