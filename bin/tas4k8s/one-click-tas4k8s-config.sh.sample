@@ -51,7 +51,9 @@ AWS_SERVICE_ACCOUNT="$SERVICE_ACCOUNT_NAME"
 # @see https://aws.amazon.com/blogs/security/aws-iam-introduces-updated-policy-defaults-for-iam-user-passwords/
 AWS_SERVICE_ACCOUNT_PASSWORD="REPLACE_ME"
 AWS_REGION="us-west-2"
-AWS_ZONES=["us-west-2a", "us-west-2b", "us-west-2c"]
+AWS_NODE_AZ="us-west2-a"
+AWS_NODE_AZ_1="us-west2-b"
+AWS_NODE_AZ_2="us-west2-c"
 # Supply existing administrator credentials here (must have iam:CreateUser)
 # We'll create a new service account that will itself have administrator privileges
 # Values here will be replaced with those of the service account
@@ -86,9 +88,6 @@ TKG_WORKER_NODE_COUNT=8
 
 ## TKG on AWS specific
 # Be sure to fill out all EKS specific config above too
-AWS_NODE_AZ="us-west1-a"
-AWS_NODE_AZ_1="us-west1-b"
-AWS_NODE_AZ_2="us-west1-c"
 TKG_CONTROL_PLANE_MACHINE_TYPE="m5a.large"
 TKG_WORKER_NODE_MACHINE_TYPE="m5a.xlarge"
 

@@ -114,7 +114,7 @@ min_nodes = $EKS_MIN_NODES
 max_nodes = $EKS_MAX_NODES
 kubernetes_version = "$EKS_K8S_VERSION"
 region = "$AWS_REGION"
-availability_zones = $AWS_ZONES
+availability_zones = [ "$AWS_NODE_AZ", "$AWS_NODE_AZ_1", "$AWS_NODE_AZ_2" ]
 ssh_key_name = "$SSH_KEY_NAME"
 node_pool_instance_type = "$EKS_NODE_TYPE"
 EOF
