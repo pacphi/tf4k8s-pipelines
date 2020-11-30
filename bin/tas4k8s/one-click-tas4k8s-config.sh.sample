@@ -19,8 +19,6 @@ TF4K8S_PIPELINES_CONFIG_PARENT_DIR=".tf4k8s"
 CONTAINER_REGISTRY_USERNAME=""
 CONTAINER_REGISTRY_PASSWORD=""
 
-# Use a regex to define the product version of Tanzu Application Service for Kubernetes (available on the Tanzu Network)
-TAS4K8S_VERSION="3\.1\.0\-build\.*"
 TF4K8S_PIPELINE_REPO="https://github.com/pacphi/tf4k8s-pipelines.git"
 TF4K8S_PIPELINE_REPO_BRANCH="one-click"
 TF4K8S_SCRIPTS_REPO="https://github.com/pacphi/tf4k8s.git"
@@ -36,6 +34,8 @@ EMAIL_ADDRESS="REPLACE_ME"
 TANZU_NETWORK_ACCOUNT_USERNAME=$EMAIL_ADDRESS
 TANZU_NETWORK_ACCOUNT_PASSWORD="REPLACE_ME"
 TANZU_NETWORK_API_TOKEN="REPLACE_ME"
+# Use a regex to define the product version of Tanzu Application Service for Kubernetes (available on the Tanzu Network)
+TAS4K8S_VERSION="3\.1\.0\-build\.*"
 
 
 ## AKS specific
