@@ -98,8 +98,9 @@ concourse_team_name: $CONCOURSE_TEAM
 concourse_is_insecure: $IS_CONCOURSE_INSECURE
 concourse_is_in_debug_mode: $IS_CONCOURSE_IN_DEBUG_MODE
 terraform_resource_with_carvel_image: $CARVEL_IMAGE
-registry_username: ""
-registry_password: ""
+registry_username: $CONTAINER_REGISTRY_USERNAME
+registry_password: $CONTAINER_REGISTRY_PASSWORD
+pipeline_repo: $TF4K8S_PIPELINE_REPO
 pipeline_repo_branch: $TF4K8S_PIPELINE_REPO_BRANCH
 environment_name: $CONCOURSE_TEAM
 aws_region: $AWS_REGION
@@ -231,9 +232,10 @@ EOF
 TAS4K8S_CI_CONFIG=$(cat <<EOF
 current_pipeline_name: install-tas4k8s
 product_version: $TAS4K8S_VERSION
-bby_image: pacphi/bby
+bby_image: $BBY_IMAGE
 tanzu_network_api_token: $TANZU_NETWORK_API_TOKEN
-scripts_repo_branch: master
+scripts_repo: $TF4K8S_SCRIPTS_REPO
+scripts_repo_branch: $TF4K8S_SCRIPTS_REPO_BRANCH
 s3_bucket_folder: harbor
 registry_password_tfvar_name: harbor_admin_password
 zone_id_variable_name: dns_zone_id
@@ -263,8 +265,9 @@ concourse_team_name: $CONCOURSE_TEAM
 concourse_is_insecure: $IS_CONCOURSE_INSECURE
 concourse_is_in_debug_mode: $IS_CONCOURSE_IN_DEBUG_MODE
 terraform_resource_with_carvel_image: $CARVEL_IMAGE
-registry_username: ""
-registry_password: ""
+registry_username: $CONTAINER_REGISTRY_USERNAME
+registry_password: $CONTAINER_REGISTRY_PASSWORD
+pipeline_repo: $TF4K8S_PIPELINE_REPO
 pipeline_repo_branch: $TF4K8S_PIPELINE_REPO_BRANCH
 environment_name: $CONCOURSE_TEAM
 storage_account_name: $AZ_STORAGE_ACCOUNT_NAME
@@ -406,9 +409,10 @@ EOF
 TAS4K8S_CI_CONFIG=$(cat <<EOF
 current_pipeline_name: install-tas4k8s
 product_version: $TAS4K8S_VERSION
-bby_image: pacphi/bby
+bby_image: $BBY_IMAGE
 tanzu_network_api_token: $TANZU_NETWORK_API_TOKEN
-scripts_repo_branch: master
+scripts_repo: $TF4K8S_SCRIPTS_REPO
+scripts_repo_branch: $TF4K8S_SCRIPTS_REPO_BRANCH
 azure_storage_bucket_folder: harbor
 registry_password_tfvar_name: harbor_admin_password
 EOF
@@ -445,8 +449,9 @@ concourse_team_name: $CONCOURSE_TEAM
 concourse_is_insecure: $IS_CONCOURSE_INSECURE
 concourse_is_in_debug_mode: $IS_CONCOURSE_IN_DEBUG_MODE
 terraform_resource_with_carvel_image: $CARVEL_IMAGE
-registry_username: ""
-registry_password: ""
+registry_username: $CONTAINER_REGISTRY_USERNAME
+registry_password: $CONTAINER_REGISTRY_PASSWORD
+pipeline_repo: $TF4K8S_PIPELINE_REPO
 pipeline_repo_branch: $TF4K8S_PIPELINE_REPO_BRANCH
 environment_name: $CONCOURSE_TEAM
 gcp_service_account_key_filename: $GCP_SERVICE_ACCOUNT.$GCP_PROJECT.json
@@ -575,9 +580,10 @@ EOF
 TAS4K8S_CI_CONFIG=$(cat <<EOF
 current_pipeline_name: install-tas4k8s
 product_version: $TAS4K8S_VERSION
-bby_image: pacphi/bby
+bby_image: $BBY_IMAGE
 tanzu_network_api_token: $TANZU_NETWORK_API_TOKEN
-scripts_repo_branch: master
+scripts_repo: $TF4K8S_SCRIPTS_REPO
+scripts_repo_branch: $TF4K8S_SCRIPTS_REPO_BRANCH
 gcp_storage_bucket_folder: harbor
 registry_password_tfvar_name: harbor_admin_password
 EOF
@@ -606,8 +612,9 @@ concourse_is_insecure: $IS_CONCOURSE_INSECURE
 concourse_is_in_debug_mode: $IS_CONCOURSE_IN_DEBUG_MODE
 terraform_resource_with_tkg_image: $TKG_IMAGE
 terraform_resource_with_carvel_image: $CARVEL_IMAGE
-registry_username: ""
-registry_password: ""
+registry_username: $CONTAINER_REGISTRY_USERNAME
+registry_password: $CONTAINER_REGISTRY_PASSWORD
+pipeline_repo: $TF4K8S_PIPELINE_REPO
 pipeline_repo_branch: $TF4K8S_PIPELINE_REPO_BRANCH
 environment_name: $CONCOURSE_TEAM
 aws_region: $AWS_REGION
@@ -759,9 +766,10 @@ EOF
 TAS4K8S_CI_CONFIG=$(cat <<EOF
 current_pipeline_name: install-tas4k8s
 product_version: $TAS4K8S_VERSION
-bby_image: pacphi/bby
+bby_image: $BBY_IMAGE
 tanzu_network_api_token: $TANZU_NETWORK_API_TOKEN
-scripts_repo_branch: master
+scripts_repo: $TF4K8S_SCRIPTS_REPO
+scripts_repo_branch: $TF4K8S_SCRIPTS_REPO_BRANCH
 s3_bucket_folder: harbor
 registry_password_tfvar_name: harbor_admin_password
 zone_id_variable_name: dns_zone_id
@@ -792,8 +800,9 @@ concourse_is_insecure: $IS_CONCOURSE_INSECURE
 concourse_is_in_debug_mode: $IS_CONCOURSE_IN_DEBUG_MODE
 terraform_resource_with_tkg_image: $TKG_IMAGE
 terraform_resource_with_carvel_image: $CARVEL_IMAGE
-registry_username: ""
-registry_password: ""
+registry_username: $CONTAINER_REGISTRY_USERNAME
+registry_password: $CONTAINER_REGISTRY_PASSWORD
+pipeline_repo: $TF4K8S_PIPELINE_REPO
 pipeline_repo_branch: $TF4K8S_PIPELINE_REPO_BRANCH
 environment_name: $CONCOURSE_TEAM
 storage_account_name: $AZ_STORAGE_ACCOUNT_NAME
@@ -952,9 +961,10 @@ EOF
 TAS4K8S_CI_CONFIG=$(cat <<EOF
 current_pipeline_name: install-tas4k8s
 product_version: $TAS4K8S_VERSION
-bby_image: pacphi/bby
+bby_image: $BBY_IMAGE
 tanzu_network_api_token: $TANZU_NETWORK_API_TOKEN
-scripts_repo_branch: master
+scripts_repo_branch: $TF4K8S_SCRIPTS_REPO_BRANCH
+scripts_repo: $TF4K8S_SCRIPTS_REPO
 azure_storage_bucket_folder: harbor
 registry_password_tfvar_name: harbor_admin_password
 EOF

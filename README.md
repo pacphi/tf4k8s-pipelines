@@ -54,6 +54,8 @@ A Concourse resource based off [ljfranklin/terraform-resource](https://github.co
 ```
 fly -t <target> set-pipeline -p build-and-push-terraform-resource-with-az-cli-image \
     -c ./pipelines/build-and-push-terraform-resource-with-az-cli-image.yml \
+    --var pipeline-repo=<pipeline_repo> \
+    --var pipeline-repo-branch=<pipeline_repo_branch> \
     --var image-repo-name=<repo-name> \
     --var registry-username=<user> \
     --var registry-password=<password>
@@ -61,6 +63,8 @@ fly -t <target> unpause-pipeline -p build-and-push-terraform-resource-with-az-cl
 ```
 
 * `<target>` is the alias for the connection details to a Concourse instance
+* `<pipeline_repo>` is the Git repository that contains the Dockerfile for the container image to be built (e.g., https://github.com/pacphi/tf4k8s-pipelines.git)
+* `<pipeline_repo_branch>` is the aformentioned Git repository's branch (e.g., main)
 * `<repo-name>` is a container image repository prefix (e.g., docker.io or a private registry like harbor.envy.ironleg.me/library)
 * `<username>` and `<password>` are the credentials of an account with read/write privileges to a container image registry
 
@@ -73,6 +77,8 @@ A Concourse resource based off [ljfranklin/terraform-resource](https://github.co
 ```
 fly -t <target> set-pipeline -p build-and-push-terraform-resource-with-carvel-image \
     -c ./pipelines/build-and-push-terraform-resource-with-carvel-image.yml \
+    --var pipeline-repo=<pipeline_repo> \
+    --var pipeline-repo-branch=<pipeline_repo_branch> \
     --var image-repo-name=<repo-name> \
     --var registry-username=<user> \
     --var registry-password=<password>
@@ -80,6 +86,8 @@ fly -t <target> unpause-pipeline -p build-and-push-terraform-resource-with-carve
 ```
 
 * `<target>` is the alias for the connection details to a Concourse instance
+* `<pipeline_repo>` is the Git repository that contains the Dockerfile for the container image to be built (e.g., https://github.com/pacphi/tf4k8s-pipelines.git)
+* `<pipeline_repo_branch>` is the aformentioned Git repository's branch (e.g., main)
 * `<repo-name>` is a container image repository prefix (e.g., docker.io or a private registry like harbor.envy.ironleg.me/library)
 * `<username>` and `<password>` are the credentials of an account with read/write privileges to a container image registry
 
@@ -92,6 +100,8 @@ A simple image based on [alpine](https://alpinelinux.org/about/) that includes [
 ```
 fly -t <target> set-pipeline -p build-and-push-bby-image \
     -c ./pipelines/build-and-push-bash-bosh-and-ytt-image.yml \
+    --var pipeline-repo=<pipeline_repo> \
+    --var pipeline-repo-branch=<pipeline_repo_branch> \
     --var image-repo-name=<repo-name> \
     --var registry-username=<user> \
     --var registry-password=<password>
@@ -99,6 +109,8 @@ fly -t <target> unpause-pipeline -p build-and-push-bby-image
 ```
 
 * `<target>` is the alias for the connection details to a Concourse instance
+* `<pipeline_repo>` is the Git repository that contains the Dockerfile for the container image to be built (e.g., https://github.com/pacphi/tf4k8s-pipelines.git)
+* `<pipeline_repo_branch>` is the aformentioned Git repository's branch (e.g., main)
 * `<repo-name>` is a container image repository prefix (e.g., docker.io or a private registry like harbor.envy.ironleg.me/library)
 * `<username>` and `<password>` are the credentials of an account with read/write privileges to a container image registry
 
@@ -111,6 +123,8 @@ A Concourse resource based off [ljfranklin/terraform-resource](https://github.co
 ```
 fly -t <target> set-pipeline -p build-and-push-terraform-resource-with-tkg-tmc-image \
     -c ./pipelines/build-and-push-terraform-resource-with-tkg-tmc-image.yml \
+    --var pipeline-repo=<pipeline_repo> \
+    --var pipeline-repo-branch=<pipeline_repo_branch> \
     --var image-repo-name=<repo-name> \
     --var registry-username=<user> \
     --var registry-password=<password> \
@@ -120,6 +134,8 @@ fly -t <target> unpause-pipeline -p terraform-resource-with-tkg-tmc-image
 ```
 
 * `<target>` is the alias for the connection details to a Concourse instance
+* `<pipeline_repo>` is the Git repository that contains the Dockerfile for the container image to be built (e.g., https://github.com/pacphi/tf4k8s-pipelines.git)
+* `<pipeline_repo_branch>` is the aformentioned Git repository's branch (e.g., main)
 * `<repo-name>` is a container image repository prefix (e.g., docker.io or a private registry like harbor.envy.ironleg.me/library)
 * `<username>` and `<password>` are the credentials of an account with read/write privileges to a container image registry
 * `<vmw_username>` and `<vmw_password>` are the credentials of an account on my.vmwware.com
@@ -253,6 +269,7 @@ Here are a few examples:
 terraform_resource_with_carvel_image: pacphi/terraform-resource-with-carvel
 registry_username: REPLACE_ME
 registry_password: REPLACE_ME
+pipeline_repo: https://github.com/pacphi/tf4k8s-pipelines.git
 pipeline_repo_branch: main
 environment_name: n00b
 gcp_account_key_json: |

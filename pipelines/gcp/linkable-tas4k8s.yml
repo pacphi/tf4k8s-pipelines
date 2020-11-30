@@ -30,14 +30,14 @@ resources:
   type: git
   icon: github
   source:
-    uri: https://github.com/pacphi/tf4k8s-pipelines.git
+    uri: ((pipeline_repo))
     branch: ((pipeline_repo_branch))
 
 - name: source-repo
   type: git
   icon: github
   source:
-    uri: https://github.com/pacphi/tf4k8s.git
+    uri: ((scripts_repo))
     branch: ((scripts_repo_branch))
 
 - name: tas4k8s-distro

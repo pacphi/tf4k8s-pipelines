@@ -7,15 +7,24 @@ IAAS="REPLACE_ME"
 
 ## General settings
 
+BBY_IMAGE="pacphi/bby"
 CARVEL_IMAGE="pacphi/terraform-resource-with-carvel"
 TKG_IMAGE="pacphi/terraform-resource-with-tkg-tmc"
 
 # Create pipelines config parent directory
 TF4K8S_PIPELINES_CONFIG_PARENT_DIR=".tf4k8s"
 
+# Container registry credentials
+# Must be set to non-blank value if sourcing images from anywhere other than Dockerhub
+CONTAINER_REGISTRY_USERNAME=""
+CONTAINER_REGISTRY_PASSWORD=""
+
 # Use a regex to define the product version of Tanzu Application Service for Kubernetes (available on the Tanzu Network)
 TAS4K8S_VERSION="3\.1\.0\-build\.*"
-TF4K8S_PIPELINE_REPO_BRANCH="main"
+TF4K8S_PIPELINE_REPO="https://github.com/pacphi/tf4k8s-pipelines.git"
+TF4K8S_PIPELINE_REPO_BRANCH="one-click"
+TF4K8S_SCRIPTS_REPO="https://github.com/pacphi/tf4k8s.git"
+TF4K8S_SCRIPTS_REPO_BRANCH="master"
 SERVICE_ACCOUNT_NAME="tf4k8s-sa"
 K8S_ENV="tf4k8s-demo"
 BASE_NAME="REPLACE_ME"
