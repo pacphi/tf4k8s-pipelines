@@ -673,7 +673,7 @@ EOF
 
 DNS_CI_CONFIG=$(cat <<EOF
 current_pipeline_name: create-dns
-next_pipeline_name: create-cluster
+next_pipeline_name: create-management-cluster
 next_plan_name: terraform-plan
 terraform_module: $IAAS/dns
 s3_bucket_folder: $IAAS/dns
@@ -866,7 +866,7 @@ EOF
 
 DNS_CI_CONFIG=$(cat <<EOF
 current_pipeline_name: create-dns
-next_pipeline_name: create-cluster
+next_pipeline_name: create-management-cluster
 next_plan_name: terraform-plan
 terraform_module: $IAAS/dns
 azure_storage_bucket_folder: $IAAS/dns
@@ -1007,7 +1007,17 @@ if [ "$IAAS" == "gcp" ]; then
 fi
 
 echo -e "$DNS_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$IAAS/create-dns.yml
-echo -e "$CLUSTER_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$IAAS/create-cluster.yml
+
+if [ "$IAAS" == "tkg/azure" ] || [ "$IAAS" == "tkg/aws" ]; then
+  echo -e "$MGMT_CLUSTER_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$IAAS/create-mgmt-cluster.yml
+  echo -e "$WKLD_CLUSTER_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$IAAS/create-workload-cluster.yml
+  TKG_IAAS="$(cut -d'/' -f2 <<<"$IAAS")"
+  echo -e "$DNS_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$TKG_IAAS/create-dns.yml
+else
+  echo -e "$CLUSTER_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$IAAS/create-cluster.yml
+  echo -e "$DNS_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$IAAS/create-dns.yml
+fi
+
 echo -e "$CERTMGR_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$IAAS/install-certmanager.yml
 echo -e "$NIC_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$IAAS/install-nginx-ingress-controller.yml
 echo -e "$EXTERNAL_DNS_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$IAAS/install-external-dns.yml
