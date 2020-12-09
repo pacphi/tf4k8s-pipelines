@@ -39,6 +39,6 @@ jobs:
         CONTEXT: tf4k8s-pipelines-repo/images/terraform-resource-with-tkg-tmc
       run:
         path: build
-  - put: terraform-resource-with-tkg-tmc
+  - put: terraform-resource-with-tkg-tmc-image
     params:
       image: image/image.tar

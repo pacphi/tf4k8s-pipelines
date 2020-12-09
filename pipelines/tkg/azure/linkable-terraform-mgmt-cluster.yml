@@ -96,13 +96,13 @@ jobs:
 - name: terraform-apply
   plan:
   - get: pipeline-repo
-    trigger: false
+    trigger: true
     passed: [terraform-plan]
   - get: pk
-    trigger: false
+    trigger: true
     passed: [terraform-plan]
   - get: terraform-state
-    trigger: false
+    trigger: true
     passed: [terraform-plan]
   - put: terraform-state
     params:

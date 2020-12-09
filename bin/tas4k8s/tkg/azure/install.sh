@@ -25,11 +25,12 @@ EOF
 )
 
 MGMT_CLUSTER_TFVARS=$(cat <<EOF
-az_resource_group = "$AZ_RESOURCE_GROUP"
+environment = "$K8S_ENV"
+az_resource_group_name = "$AZ_RESOURCE_GROUP"
 path_to_tkg_config_yaml = "~/.tf4k8s/tkg/$CONCOURSE_TEAM/config.yaml"
 path_to_az_ssh_public_key = "/tmp/build/put/pk/az_rsa.pub"
-az_location = $AZ_REGION
-az_subscription_id = $AZ_SUBSCRIPTION_ID
+az_location = "$AZ_REGION"
+az_subscription_id = "$AZ_SUBSCRIPTION_ID"
 az_tenant_id = "$AZ_TENANT_ID"
 az_client_id = "$AZ_CLIENT_ID"
 az_client_secret = "$AZ_CLIENT_SECRET"

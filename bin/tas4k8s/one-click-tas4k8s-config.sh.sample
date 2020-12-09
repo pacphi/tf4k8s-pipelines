@@ -15,7 +15,7 @@ TKG_IMAGE="pacphi/terraform-resource-with-tkg-tmc"
 TF4K8S_PIPELINES_CONFIG_PARENT_DIR=".tf4k8s"
 
 # Container registry credentials
-# Must be set to non-blank value if sourcing images from anywhere other than Dockerhub
+# Must be set to non-blank value if sourcing images from anywhere other than a public Dockerhub repository
 CONTAINER_REGISTRY_USERNAME=""
 CONTAINER_REGISTRY_PASSWORD=""
 

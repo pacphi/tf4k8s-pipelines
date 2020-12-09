@@ -118,7 +118,7 @@ fly -t <target> unpause-pipeline -p build-and-push-bby-image
 
 ### Build and push the terraform-resource-with-tkg-tmc image
 
-A Concourse resource based off [ljfranklin/terraform-resource](https://github.com/ljfranklin/terraform-resource#terraform-concourse-resource) that also includes these command-line interfaces: tkg, tkgi and tmc.
+A Concourse resource based off [ljfranklin/terraform-resource](https://github.com/ljfranklin/terraform-resource#terraform-concourse-resource) that also includes these command-line interfaces: tkg and tmc.
 
 ```
 fly -t <target> set-pipeline -p build-and-push-terraform-resource-with-tkg-tmc-image \
