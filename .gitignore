@@ -31,11 +31,10 @@ override.tf.json
 # Code
 .history/
 
-# Local environment
-.concourse-local
-
 # Concourse
 ci/
+.concourse-local
 .working/
 one-click-tas4k8s-config.sh
+one-click-images-config.sh
 destroy-pipelines.sh
