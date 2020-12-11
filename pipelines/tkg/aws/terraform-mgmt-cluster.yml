@@ -126,6 +126,7 @@ jobs:
 
 - name: create-management-cluster
   plan:
+  - get: pipeline-repo
   - get: tkg-config
     trigger: true
     passed: [store-tkg-config]
@@ -169,6 +170,8 @@ jobs:
 
 - name: delete-management-cluster
   plan:
+  - get: pipeline-repo
+    trigger: false
   - get: tkg-config
     trigger: false
   - get: kind-on-c
