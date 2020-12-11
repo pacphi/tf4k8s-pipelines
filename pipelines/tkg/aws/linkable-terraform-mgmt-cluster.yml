@@ -219,7 +219,7 @@ jobs:
     input_mapping:
       inputs: tkg-cli
     output_mapping:
-      outputs: mgmt-config
+      outputs: tkg-config
     params:
       KIND_TESTS: |
         cd inputs
