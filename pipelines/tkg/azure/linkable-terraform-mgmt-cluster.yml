@@ -164,21 +164,23 @@ jobs:
       - kind-linux-amd64 
   - task: get-tkg-cli
     file: pipeline-repo/tasks/get-myvmw-product/task.yml
+    input_mapping:
+      pipeline: pipeline-repo
+    output_mapping:
+      product: tkg-cli
     params:
       VMWUSER: ((vmw_username))
       VMWPASS: ((vmw_password))
       PRODUCT_CATEGORY: vmware_tanzu_kubernetes_grid
       PRODUCT_VERSION: 1_x
       PRODUCT_FILE_GLOB: tkg-linux-amd64.*.tar.gz
-    output_mapping:
-      product: tkg-cli
   - task: create-mgmt-cluster-via-kind
     privileged: true
     file: kind-on-c/kind.yaml
     input_mapping:
       inputs: tkg-cli
     output_mapping:
-      outputs: mgmt-config
+      outputs: tkg-config
     params:
       KIND_TESTS: |
         cd inputs

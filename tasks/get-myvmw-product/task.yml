@@ -24,4 +24,4 @@ run:
   path: /bin/sh
   args:
     - -c
-    - pipeline-repo/tasks/get-myvmw-product/task.sh
+    - pipeline/tasks/get-myvmw-product/task.sh
