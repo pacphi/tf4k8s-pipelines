@@ -46,6 +46,10 @@ next_pipeline_name: create-workload-cluster
 next_plan_name: terraform-plan
 terraform_module: $IAAS/mgmt
 s3_bucket_folder: $IAAS/mgmt
+tkg_plan: $TKG_PLAN
+tkg_management_cluster_name: $TKG_MGMT_CLUSTER_NAME
+vmw_username: $MY_VMWARE_USERNAME
+vmw_password: $MY_VMWARE_PASSWORD
 EOF
 )
 

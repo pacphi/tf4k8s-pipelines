@@ -1,0 +1,27 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: apnex/vmw-cli
+
+inputs: 
+  - name: pipeline
+
+outputs:
+  - name: product
+
+params:
+  VMWUSER:
+  VMWPASS:
+  PRODUCT_CATEGORY: # vmware_tanzu_kubernetes_grid
+  PRODUCT_VERSION: # 1_x
+  PRODUCT_TYPE: PRODUCT_BINARY
+  PRODUCT_FILE_GLOB: # tkg-linux-amd64.*.tar.gz
+
+run:
+  path: /bin/sh
+  args:
+    - -c
+    - pipeline-repo/tasks/get-myvmw-product/task.sh

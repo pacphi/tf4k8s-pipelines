@@ -73,6 +73,17 @@ resources:
     container: s3cr3ts-((uid))
     versioned_file: ((environment_name))/.tkg/config.yaml
 
+- name: kind-release
+  type: github-release
+  source:
+    owner: kubernetes-sigs
+    repository: kind
+
+- name: kind-on-c
+  type: git
+  source:
+    uri: https://github.com/pivotal-k8s/kind-on-c
+
 jobs:
 - name: terraform-plan
   plan:
@@ -142,6 +153,85 @@ jobs:
     params:
       file: tkg-config/.tkg/config.yaml
 
+- name: create-management-cluster
+  plan:
+  - get: tkg-config
+    trigger: [store-tkg-config]
+  - get: kind-on-c
+  - get: kind-release
+    params:
+      globs:
+      - kind-linux-amd64 
+  - task: get-tkg-cli
+    file: pipeline-repo/tasks/get-myvmw-product/task.yml
+    params:
+      VMWUSER: ((vmw_username))
+      VMWPASS: ((vmw_password))
+      PRODUCT_CATEGORY: vmware_tanzu_kubernetes_grid
+      PRODUCT_VERSION: 1_x
+      PRODUCT_FILE_GLOB: tkg-linux-amd64.*.tar.gz
+    output_mapping:
+      product: tkg-cli
+  - task: create-mgmt-cluster-via-kind
+    privileged: true
+    file: kind-on-c/kind.yaml
+    input_mapping:
+      inputs: tkg-cli
+    output_mapping:
+      outputs: mgmt-config
+    params:
+      KIND_TESTS: |
+        cd inputs
+        tar -xzf *.tar.gz
+        for i in $(ls -1 tkg); do
+          chmod +x tkg/$i
+          mv tkg/$i /usr/local/bin/$( echo $i | cut -d'-' -f1)
+        done
+        cd ..
+        tkg init --infrastructure azure --plan ((tkg_plan)) --name ((tkg_management_cluster_name)) --config tkg-config/.tkg/config.yaml --use-existing-bootstrap-cluster --v 6
+  - put: tkg-config
+    params:
+      file: tkg-config/.tkg/config.yaml
+
+- name: delete-management-cluster
+  plan:
+  - get: tkg-config
+    trigger: false
+  - get: kind-on-c
+    trigger: false
+  - get: kind-release
+    trigger: false
+    params:
+      globs:
+      - kind-linux-amd64 
+  - task: get-tkg-cli
+    file: pipeline-repo/tasks/get-myvmw-product/task.yml
+    params:
+      VMWUSER: ((vmw_username))
+      VMWPASS: ((vmw_password))
+      PRODUCT_CATEGORY: vmware_tanzu_kubernetes_grid
+      PRODUCT_VERSION: 1_x
+      PRODUCT_FILE_GLOB: tkg-linux-amd64.*.tar.gz
+    output_mapping:
+      product: tkg-cli
+  - task: delete-mgmt-cluster-via-kind
+    privileged: true
+    file: kind-on-c/kind.yaml
+    input_mapping:
+      inputs: tkg-cli
+    output_mapping:
+      outputs: mgmt-config
+    params:
+      KIND_TESTS: |
+        cd inputs
+        tar -xzf *.tar.gz
+        for i in $(ls -1 tkg); do
+          chmod +x tkg/$i
+          mv tkg/$i /usr/local/bin/$( echo $i | cut -d'-' -f1)
+        done
+        cd ..
+        tkg delete management-cluster --name ((tkg_management_cluster_name)) --config tkg-config/.tkg/config.yaml --use-existing-bootstrap-cluster --v 6
+
 - name: terraform-destroy
   plan:
   - get: pipeline-repo
@@ -164,7 +254,7 @@ jobs:
   plan:
   - get: tkg-config
     trigger: true
-    passed: [store-tkg-config]
+    passed: [create-management-cluster]
   - put: fly
     params:
       options: unpause-pipeline -p ((next_pipeline_name))

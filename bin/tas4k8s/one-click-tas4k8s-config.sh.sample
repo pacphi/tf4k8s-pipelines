@@ -7,6 +7,7 @@ IAAS="REPLACE_ME"
 
 ## General settings
 
+EMAIL_ADDRESS="REPLACE_ME"
 BBY_IMAGE="pacphi/bby"
 CARVEL_IMAGE="pacphi/terraform-resource-with-carvel"
 TKG_IMAGE="pacphi/terraform-resource-with-tkg-tmc"
@@ -24,18 +25,22 @@ TF4K8S_PIPELINE_REPO_BRANCH="one-click"
 TF4K8S_SCRIPTS_REPO="https://github.com/pacphi/tf4k8s.git"
 TF4K8S_SCRIPTS_REPO_BRANCH="master"
 SERVICE_ACCOUNT_NAME="tf4k8s-sa"
-K8S_ENV="tf4k8s-demo"
 BASE_NAME="REPLACE_ME"
 BASE_DOMAIN="$BASE_NAME.me"
 SUB_NAME="REPLACE_ME"
 SUB_DOMAIN="$SUB_NAME.$BASE_DOMAIN"
+K8S_ENV="tf4k8s-$SUB_NAME"
 
-EMAIL_ADDRESS="REPLACE_ME"
+# Tanzu Network credentials
 TANZU_NETWORK_ACCOUNT_USERNAME=$EMAIL_ADDRESS
 TANZU_NETWORK_ACCOUNT_PASSWORD="REPLACE_ME"
 TANZU_NETWORK_API_TOKEN="REPLACE_ME"
 # Use a regex to define the product version of Tanzu Application Service for Kubernetes (available on the Tanzu Network)
 TAS4K8S_VERSION="3\.1\.0\-build\.*"
+
+# My VMware credentials
+MY_VMWARE_USERNAME="REPLACE_ME"
+MY_VMWARE_PASSWORD="REPLACE_ME"
 
 
 ## AKS specific
@@ -90,7 +95,9 @@ GKE_NODES=8
 
 ## TKG specific (applies to all targeted infra)
 
+# Plan must be one of: [ dev, prod ]
 TKG_PLAN="dev"
+TKG_MGMT_CLUSTER_NAME="$K8S_ENV-mgmt"
 TKG_K8S_VERSION="v1.19.1+vmware.2"
 TKG_CONTROL_PLANE_NODE_COUNT=1
 TKG_WORKER_NODE_COUNT=8
