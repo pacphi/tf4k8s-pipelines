@@ -11,7 +11,7 @@ resource_types:
   type: docker-image
   source:
     repository: pcfabr/azure-blobstore-resource
-    tag: 0.10.15
+    tag: 0.11.0
 
 resources:
 # The repo that contains Terraform
@@ -122,10 +122,10 @@ jobs:
         args:
         - -exc
         - |
-          cat terraform-state/metadata | jq -r '.config_yaml_contents' > .tkg/config.yaml
+          cat terraform-state/metadata | jq -r '.config_yaml_contents' > tkg-config/config.yaml
   - put: tkg-config
     params:
-      file: tkg-config/.tkg/config.yaml
+      file: tkg-config/config.yaml
 
 - name: create-management-cluster
   plan:
@@ -165,10 +165,10 @@ jobs:
           mv tkg/$i /usr/local/bin/$( echo $i | cut -d'-' -f1)
         done
         cd ..
-        tkg init --infrastructure azure --plan ((tkg_plan)) --name ((tkg_management_cluster_name)) --config tkg-config/.tkg/config.yaml --use-existing-bootstrap-cluster --v 6
+        tkg init --infrastructure azure --plan ((tkg_plan)) --name ((tkg_management_cluster_name)) --config tkg-config/config.yaml --use-existing-bootstrap-cluster --v 6
   - put: tkg-config
     params:
-      file: tkg-config/.tkg/config.yaml
+      file: tkg-config/config.yaml
 
 - name: delete-management-cluster
   plan:
@@ -207,7 +207,7 @@ jobs:
           mv tkg/$i /usr/local/bin/$( echo $i | cut -d'-' -f1)
         done
         cd ..
-        tkg delete management-cluster --name ((tkg_management_cluster_name)) --config tkg-config/.tkg/config.yaml --use-existing-bootstrap-cluster --v 6
+        tkg delete management-cluster --name ((tkg_management_cluster_name)) --config tkg-config/config.yaml --use-existing-bootstrap-cluster --v 6
 
 - name: terraform-destroy
   plan:
