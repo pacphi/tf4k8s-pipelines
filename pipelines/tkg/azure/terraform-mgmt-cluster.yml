@@ -98,6 +98,7 @@ jobs:
     params:
       terraform_source: pipeline-repo/terraform/((terraform_module))
       plan_run: true
+
 - name: store-tkg-config
   plan:
   - get: terraform-state
@@ -129,7 +130,8 @@ jobs:
 - name: create-management-cluster
   plan:
   - get: tkg-config
-    trigger: [store-tkg-config]
+    trigger: true
+    passed: [store-tkg-config]
   - get: kind-on-c
   - get: kind-release
     params:

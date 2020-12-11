@@ -149,7 +149,8 @@ jobs:
 - name: create-management-cluster
   plan:
   - get: tkg-config
-    trigger: [store-tkg-config]
+    trigger: true
+    passed: [store-tkg-config]
   - get: kind-on-c
   - get: kind-release
     params:
