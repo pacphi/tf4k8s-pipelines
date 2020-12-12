@@ -7,13 +7,17 @@ Sample GitOps pipelines that employ modules from [tf4k8s](https://github.com/pac
 ![Concourse pipelines screenshot](concourse-pipelines.png?raw=true "Concourse pipelines screenshot")
 ![Install TAS4K8s pipeline screenshot](install-tas4k8s.png?raw=true "Install TAS4K8s pipeline screenshot")
 
-You could spin up a local [Concourse](https://concourse-ci.org/install.html) instance for test purposes. Or you might consider employing the [control-tower](https://github.com/EngineerBetter/control-tower) CLI to deploy a self-healing, self-updating Concourse instance with [Grafana](https://grafana.com/) and [CredHub](https://docs.cloudfoundry.org/credhub/) in either AWS or GCP.
+You have some options:
+
+* spin up a local [Concourse](https://concourse-ci.org/install.html) instance for test purposes with docker-compose
+* employ the [control-tower](https://github.com/EngineerBetter/control-tower) CLI to deploy a self-healing, self-updating Concourse instance with [Grafana](https://grafana.com/) and [CredHub](https://docs.cloudfoundry.org/credhub/) in either AWS or GCP
+* dog-food `tfk48s` experiments to create a cloud zone, provision and GKE cluster, deploy foundational components plus Concourse via Helm
 
 ### Getting Started
 
 #### Deploying a local instance
 
-<details><summary>Start</summary><pre>./bin/launch-local-concourse-instance.sh</pre></details>
+<details><summary>Start</summary><pre>./bin/concourse/launch-local-concourse-instance-with-docker-compose.sh</pre></details>
 
 > This script uses [Docker Compose](https://docs.docker.com/compose/install/) to launch a local Concourse instance
 
@@ -27,9 +31,32 @@ You could spin up a local [Concourse](https://concourse-ci.org/install.html) ins
 
 <details><summary>Teardown</summary><pre>docker-compose down</pre></details>
 
+> Warning: you will not be able to spin up TKG clusters via Concourse deployed in this manner.
+
 #### Deploying a cloud-hosted instance
 
+**Option 1: via control-tower** 
+
 Consult the control-tower CLI install [documentation](https://github.com/EngineerBetter/control-tower#tldr).
+
+> Checkout the convenience scripts in the [bin/concourse](bin/concourse) directory
+
+**Option 2: via tf4k8s**
+
+Make a copy of the config sample and fill it out for your own purposes with your own credentials.
+
+```
+cd bin/concourse/gke
+cp one-click-concourse-config.sh.sample one-click-concourse-config.sh
+```
+
+Execute
+
+```
+./one-click-concourse-install.sh
+```
+
+> Credentials to the Concourse instance will be vended to you in Terraform output.
 
 ### Install the fly CLI
 

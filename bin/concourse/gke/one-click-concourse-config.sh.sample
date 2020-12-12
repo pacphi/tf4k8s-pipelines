@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+## General settings
+
+EMAIL_ADDRESS="REPLACE_ME"
+BASE_NAME="REPLACE_ME"
+BASE_DOMAIN="$BASE_NAME.me"
+SUB_NAME="REPLACE_ME"
+SUB_DOMAIN="$SUB_NAME.$BASE_DOMAIN"
+K8S_ENV="tf4k8s-$SUB_NAME-cluster"
+
+
+## GKE specific
+
+GCP_PROJECT="REPLACE_ME"
+GCP_REGION="us-west1"
+GKE_NODE_TYPE="e2-standard-4"
+GKE_NODES=1
