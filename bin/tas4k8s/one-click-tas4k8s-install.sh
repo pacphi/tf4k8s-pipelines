@@ -69,6 +69,8 @@ case "$IAAS" in
       az ad sp create-for-rbac --name $AZ_APP_ID --role="Contributor" --scopes="/subscriptions/$AZ_SUBSCRIPTION_ID/resourceGroups/$AZ_RESOURCE_GROUP"
       az ad sp credential reset --name "$AZ_APP_ID" --password "${AZ_CLIENT_SECRET}"
       AZ_CLIENT_ID=$(az ad sp list --display-name $AZ_APP_ID | jq '.[0].appId' | tr -d '"')
+      # @see https://docs.microsoft.com/en-us/azure/role-based-access-control/role-assignments-cli
+      az role assignment create --assignee "$AZ_CLIENT_ID" --role "Owner" --subscription "$AZ_SUBSCRIPTION_ID"   
       
       #az storage account create -n $AZ_STORAGE_ACCOUNT_NAME -g $AZ_RESOURCE_GROUP -l $AZ_REGION --sku Standard_LRS
       az storage account blob-service-properties update --enable-versioning -n $AZ_STORAGE_ACCOUNT_NAME -g $AZ_RESOURCE_GROUP
