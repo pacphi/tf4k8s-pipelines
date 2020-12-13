@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source $PWD/bin/concourse/gke/config.sh
+source $PWD/bin/concourse/gke/one-click-concourse-config.sh
 
 # Utilize Terraform modules in tf4k8s to provision a GKE cluster, install foundational components, and bring up a Concourse instance
 ## Prerequisites: Google Cloud Platform account credentials, git, gcloud, kubectl, helm, kapp, kbld, terraform, ytt
@@ -64,7 +64,7 @@ cd .concourse-local/experiments
 echo -e "$DNS_TFVARS" > $PWD/gcp/dns/terraform.tfvars
 echo -e "$CLUSTER_TFVARS" > $PWD/gcp/cluster/terraform.tfvars
 echo -e "$CERTMGR_TFVARS" > $PWD/gcp/certmanager/terraform.tfvars
-echo -e "$NIC_TFVARS" > $PWD/k8s/nginx-ingress-controller/terraform.tfvars
+echo -e "$NIC_TFVARS" > $PWD/k8s/nginx-ingress/terraform.tfvars
 echo -e "$EXTERNAL_DNS_TFVARS" > $PWD/gcp/external-dns/terraform.tfvars
 echo -e "$CONCOURSE_TFVARS" > $PWD/k8s/concourse/terraform.tfvars
 
