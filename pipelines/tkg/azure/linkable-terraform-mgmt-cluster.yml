@@ -138,7 +138,7 @@ jobs:
         - name: terraform-state
         - name: tkg-config
       outputs:
-        - name: tkg-config
+        - name: mgmt-config
       platform: linux
       image_resource:
         type: registry-image
@@ -148,10 +148,10 @@ jobs:
         args:
         - -exc
         - |
-          cat terraform-state/metadata | jq -r '.config_yaml_contents' > tkg-config/config.yaml
+          cat terraform-state/metadata | jq -r '.config_yaml_contents' > mgmt-config/config.yaml
   - put: tkg-config
     params:
-      file: tkg-config/config.yaml
+      file: mgmt-config/config.yaml
 
 - name: create-management-cluster
   plan:
@@ -176,13 +176,27 @@ jobs:
       PRODUCT_CATEGORY: vmware_tanzu_kubernetes_grid
       PRODUCT_VERSION: 1_x
       PRODUCT_FILE_GLOB: tkg-linux-amd64.*.tar.gz
+  - task: aggregate-inputs-for-kind-on-c
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: { repository: bash }
+      inputs:
+        - name: tkg-cli
+        - name: tkg-config
+      outputs:
+        - name: inputs
+      run:
+        path: bash
+        args:
+        - -xeuc
+        - |
+          cp tkg-cli/*.tar.gz inputs/
+          cp tkg-config/config.yaml inputs/
   - task: create-mgmt-cluster-via-kind
     privileged: true
     file: kind-on-c/kind.yaml
-    input_mapping:
-      inputs: tkg-cli
-    output_mapping:
-      outputs: tkg-config
     params:
       KIND_TESTS: |
         cd inputs
@@ -191,11 +205,10 @@ jobs:
           chmod +x tkg/$i
           mv tkg/$i /usr/local/bin/$( echo $i | cut -d'-' -f1)
         done
-        cd ..
-        tkg init --infrastructure azure --plan ((tkg_plan)) --name ((tkg_management_cluster_name)) --config tkg-config/config.yaml --use-existing-bootstrap-cluster --v 6
+        tkg init --infrastructure azure --plan ((tkg_plan)) --name ((tkg_management_cluster_name)) --config config.yaml --use-existing-bootstrap-cluster --v 6
   - put: tkg-config
     params:
-      file: tkg-config/config.yaml
+      file: inputs/config.yaml
 
 - name: delete-management-cluster
   plan:
@@ -220,13 +233,27 @@ jobs:
       PRODUCT_FILE_GLOB: tkg-linux-amd64.*.tar.gz
     output_mapping:
       product: tkg-cli
+  - task: aggregate-inputs-for-kind-on-c
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: { repository: bash }
+      inputs:
+        - name: tkg-cli
+        - name: tkg-config
+      outputs:
+        - name: inputs
+      run:
+        path: bash
+        args:
+        - -xeuc
+        - |
+          cp tkg-cli/*.tar.gz inputs/
+          cp tkg-config/config.yaml inputs/
   - task: delete-mgmt-cluster-via-kind
     privileged: true
     file: kind-on-c/kind.yaml
-    input_mapping:
-      inputs: tkg-cli
-    output_mapping:
-      outputs: tkg-config
     params:
       KIND_TESTS: |
         cd inputs
@@ -235,8 +262,7 @@ jobs:
           chmod +x tkg/$i
           mv tkg/$i /usr/local/bin/$( echo $i | cut -d'-' -f1)
         done
-        cd ..
-        tkg delete management-cluster --name ((tkg_management_cluster_name)) --config tkg-config/config.yaml --use-existing-bootstrap-cluster --v 6
+        tkg delete management-cluster --name ((tkg_management_cluster_name)) --config config.yaml --use-existing-bootstrap-cluster --v 6
 
 - name: terraform-destroy
   plan:
