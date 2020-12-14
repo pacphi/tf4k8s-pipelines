@@ -36,7 +36,7 @@ az_client_id = "$AZ_CLIENT_ID"
 az_client_secret = "$AZ_CLIENT_SECRET"
 tkg_plan = "$TKG_PLAN"
 tkg_kubernetes_version = "$TKG_K8S_VERSION"
-control_plan_machine_type = "$TKG_CONTROL_PLANE_MACHINE_TYPE"
+control_plane_machine_type = "$TKG_CONTROL_PLANE_MACHINE_TYPE"
 node_machine_type = "$TKG_WORKER_NODE_MACHINE_TYPE"
 EOF
 )
