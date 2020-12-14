@@ -205,7 +205,7 @@ jobs:
           chmod +x tkg/$i
           mv tkg/$i /usr/local/bin/$( echo $i | cut -d'-' -f1)
         done
-        tkg init --infrastructure azure --plan ((tkg_plan)) --name ((tkg_management_cluster_name)) --config config.yaml --use-existing-bootstrap-cluster --v 6
+        tkg init --infrastructure azure --plan ((tkg_plan)) --name ((tkg_management_cluster_name)) --config config.yaml --ceip-participation false --use-existing-bootstrap-cluster --v 6
   - put: tkg-config
     params:
       file: inputs/config.yaml
