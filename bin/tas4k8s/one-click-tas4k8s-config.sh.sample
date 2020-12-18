@@ -98,7 +98,7 @@ GKE_NODES=8
 # Plan must be one of: [ dev, prod ]
 TKG_PLAN="dev"
 TKG_MGMT_CLUSTER_NAME="$K8S_ENV-mgmt"
-TKG_K8S_VERSION="v1.19.1+vmware.2"
+TKG_K8S_VERSION="v1.19.3+vmware.1"
 TKG_CONTROL_PLANE_NODE_COUNT=1
 TKG_WORKER_NODE_COUNT=8
 
@@ -113,6 +113,7 @@ TKG_WORKER_NODE_MACHINE_TYPE="m5a.xlarge"
 # Be sure to fill out all AKS specific config above too
 
 AZ_REGION="westus2"
+AZ_BASE_IMAGE_OS="k8s-1dot19dot3-ubuntu-1804"
 TKG_CONTROL_PLANE_MACHINE_TYPE="Standard_D2s_v3"
 TKG_WORKER_NODE_MACHINE_TYPE="Standard_D4s_v3"
 

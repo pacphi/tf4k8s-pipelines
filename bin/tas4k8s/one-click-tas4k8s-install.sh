@@ -72,6 +72,10 @@ case "$IAAS" in
       # @see https://docs.microsoft.com/en-us/azure/role-based-access-control/role-assignments-cli
       az role assignment create --assignee "$AZ_CLIENT_ID" --role "Owner" --subscription "$AZ_SUBSCRIPTION_ID"   
       
+      if [ "$IAAS" == "tkg/azure" ]; then
+        az vm image terms accept --publisher vmware-inc --offer tkg-capi --plan $AZ_BASE_IMAGE_OS
+      fi
+      
       #az storage account create -n $AZ_STORAGE_ACCOUNT_NAME -g $AZ_RESOURCE_GROUP -l $AZ_REGION --sku Standard_LRS
       az storage account blob-service-properties update --enable-versioning -n $AZ_STORAGE_ACCOUNT_NAME -g $AZ_RESOURCE_GROUP
       ;;
