@@ -2,7 +2,7 @@ FROM alpine:3.12 as build
 
 ENV AWS_IAM_AUTHENTICATOR_VERSION="1.18.8/2020-09-18" \
     BOSH_VERSION=6.4.1 \
-    KAPP_VERSION=0.34.0 \
+    KAPP_VERSION=0.35.0 \
     KBLD_VERSION=0.27.0 \
     VENDIR_VERSION=0.13.0 \
     YTT_VERSION=0.30.0
@@ -28,7 +28,7 @@ RUN mkdir -p /opt/downloads && \
     chmod +x kbld && \
     mv kbld /opt/downloads
 
-FROM ljfranklin/terraform-resource:0.14.2
+FROM ljfranklin/terraform-resource:0.14.3
 LABEL author=cphillipson@pivotal.io
 
 ENV TF_PLUGIN_DIR=".terraform.d/plugins" \

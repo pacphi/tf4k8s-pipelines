@@ -50,6 +50,7 @@ tkg_plan: $TKG_PLAN
 tkg_management_cluster_name: $TKG_MGMT_CLUSTER_NAME
 vmw_username: $MY_VMWARE_USERNAME
 vmw_password: $MY_VMWARE_PASSWORD
+tkg_cli_gz: $TKG_CLI_GZ
 EOF
 )
 
@@ -232,6 +233,13 @@ echo -e "$TAS4K8S_TFVARS" > $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tf4k8s-pip
 rclone sync $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tf4k8s-pipelines-config $RCLONE_ALIAS:tf4k8s-pipelines-config-$SUFFIX --auto-confirm
 rclone sync $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/s3cr3ts $RCLONE_ALIAS:s3cr3ts-$SUFFIX --auto-confirm
 
+if [ "$TKG_PIPELINE_DEF_SUFFIX" == "-v2"]; then
+  mkdir -p $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/binaries/$CONCOURSE_TEAM/
+  cp $PATH_TO_TKG_CLI_GZ $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/binaries/$CONCOURSE_TEAM/
+  rclone mkdir $RCLONE_ALIAS:binaries-$SUFFIX
+  rclone sync $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/binaries $RCLONE_ALIAS:binaries-$SUFFIX --auto-confirm
+fi
+
 # First login to Concourse instance
 fly -t $CONCOURSE_ALIAS login --concourse-url $CONCOURSE_ENDPOINT -u $CONCOURSE_ADMIN_USERNAME -p $CONCOURSE_ADMIN_PASSWORD
 
@@ -240,7 +248,7 @@ fly -t $CONCOURSE_ALIAS set-team --team-name $CONCOURSE_TEAM --local-user $CONCO
 
 # Set pipelines
 fly -t $CONCOURSE_ALIAS set-pipeline -p create-dns -c ./pipelines/$CLOUD/linkable-terraformer.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$CLOUD/create-dns.yml --team=$CONCOURSE_TEAM --non-interactive
-fly -t $CONCOURSE_ALIAS set-pipeline -p create-management-cluster -c ./pipelines/$IAAS/linkable-terraform-mgmt-cluster.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/create-mgmt-cluster.yml --team=$CONCOURSE_TEAM --non-interactive
+fly -t $CONCOURSE_ALIAS set-pipeline -p create-management-cluster -c ./pipelines/$IAAS/linkable-terraform-mgmt-cluster$TKG_PIPELINE_DEF_SUFFIX.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/create-mgmt-cluster.yml --team=$CONCOURSE_TEAM --non-interactive
 fly -t $CONCOURSE_ALIAS set-pipeline -p create-workload-cluster -c ./pipelines/$IAAS/linkable-terraform-workload-cluster.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/create-workload-cluster.yml --team=$CONCOURSE_TEAM --non-interactive
 fly -t $CONCOURSE_ALIAS set-pipeline -p install-certmanager -c ./pipelines/$CLOUD/zone-aware-terraformer-with-carvel.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$CLOUD/install-certmanager.yml --team=$CONCOURSE_TEAM --non-interactive
 fly -t $CONCOURSE_ALIAS set-pipeline -p install-nginx-ingress-controller -c ./pipelines/$CLOUD/linkable-terraformer-with-carvel.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$CLOUD/install-nginx-ingress-controller.yml --team=$CONCOURSE_TEAM --non-interactive

@@ -37,3 +37,4 @@ ci/
 .working/
 one-click-*-config.sh
 destroy-pipelines.sh
+images/*/dist/

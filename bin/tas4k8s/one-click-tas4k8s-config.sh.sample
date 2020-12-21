@@ -12,6 +12,12 @@ BBY_IMAGE="pacphi/bby"
 CARVEL_IMAGE="pacphi/terraform-resource-with-carvel"
 TKG_IMAGE="pacphi/terraform-resource-with-tkg-tmc"
 
+# Either blank ("") or "-v2"
+# If "-v2" source tkg client from pre-downloaded location
+TKG_PIPELINE_DEF_SUFFIX="-v2"
+TKG_CLI_GZ="tkg-linux-amd64-v1.2.1-vmware.1.tar.gz"
+PATH_TO_TKG_CLI_GZ="$HOME/Downloads/$TKG_CLI_GZ"
+
 # Create pipelines config parent directory
 TF4K8S_PIPELINES_CONFIG_PARENT_DIR=".tf4k8s"
 
