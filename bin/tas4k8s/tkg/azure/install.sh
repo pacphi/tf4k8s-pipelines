@@ -250,7 +250,7 @@ ssh-keygen -m PEM -t rsa -b 4096 -f $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/s3
 rclone sync $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tf4k8s-pipelines-config $RCLONE_ALIAS:tf4k8s-pipelines-config-$SUFFIX --auto-confirm
 rclone sync $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/s3cr3ts $RCLONE_ALIAS:s3cr3ts-$SUFFIX --auto-confirm
 
-if [ "$TKG_PIPELINE_DEF_SUFFIX" == "-v2"]; then
+if [ "$TKG_PIPELINE_DEF_SUFFIX" == "-v2" ]; then
   mkdir -p $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/binaries/$CONCOURSE_TEAM/
   cp $PATH_TO_TKG_CLI_GZ $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/binaries/$CONCOURSE_TEAM/
   rclone mkdir $RCLONE_ALIAS:binaries-$SUFFIX
