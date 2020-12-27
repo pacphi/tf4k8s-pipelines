@@ -189,7 +189,7 @@ jobs:
         source: { repository: bash }
       inputs:
         - name: tkg-cli
-        - name: tkg-config
+        - name: tkg-management-config
       outputs:
         - name: inputs
       run:
