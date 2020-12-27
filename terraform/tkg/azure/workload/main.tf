@@ -7,6 +7,7 @@ module "tkg_azure_workload_cluster" {
   tkg_control_plane_node_count = var.tkg_control_plane_node_count
   tkg_worker_node_count = var.tkg_worker_node_count
   path_to_tkg_config_yaml = var.path_to_tkg_config_yaml
+  path_to_gzipped_management_cluster_config = var.path_to_gzipped_management_cluster_config
 }
 
 variable "environment" {
@@ -35,6 +36,10 @@ variable "tkg_worker_node_count" {
 
 variable "path_to_tkg_config_yaml" {
   description = "The path to the configuration used by Tanzu Kubernetes Grid CLI (e.g., ~/.tf4k8s/tkg/{env}/config.yaml)"
+}
+
+variable "path_to_gzipped_management_cluster_config" {
+  description = "Optional path to the configuration used by Tanzu Kuberenetes Grid CLI (to be used when .tkg and .kube-tkg directories are not already available on or have be ported from another filesystem).  Configuration supplied a path to compressed file whose contents will be extracted the to the $HOME directory."
 }
 
 output "kubeconfig_contents" {
