@@ -211,8 +211,10 @@ jobs:
           chmod +x tkg/$i
           mv tkg/$i /usr/local/bin/$( echo $i | cut -d'-' -f1)
         done
-        tkg init --infrastructure aws --plan ((tkg_plan)) --name ((tkg_management_cluster_name)) --config config.yaml --ceip-participation false --use-existing-bootstrap-cluster --v 6
-        cp -rf config.yaml ~/.tkg
+        mkdir -p ~/.tkg
+        mv config.yaml ~/.tkg
+        cd ..
+        tkg init --infrastructure aws --plan ((tkg_plan)) --name ((tkg_management_cluster_name)) --ceip-participation false --use-existing-bootstrap-cluster --v 6
         mv ~/.tkg outputs
         mv ~/.kube-tkg outputs
   - task: capture-tkg-management-config
@@ -290,6 +292,7 @@ jobs:
         done
         mv .tkg ~/
         mv .kube-tkg ~/
+        cd ..
         tkg delete management-cluster --name ((tkg_management_cluster_name)) --use-existing-bootstrap-cluster --v 6
 
 - name: terraform-destroy
