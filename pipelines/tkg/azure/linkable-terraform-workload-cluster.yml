@@ -65,13 +65,13 @@ resources:
     container: s3cr3ts-((uid))
     versioned_file: ((environment_name))/.kube/config
 
-- name: tkg-config
+- name: tkg-management-config
   type: abs-resource
   source:
     storage_account_name: ((storage_account_name))
     storage_account_key: ((storage_account_key))
     container: s3cr3ts-((uid))
-    versioned_file: ((environment_name))/.tkg/config.yaml
+    versioned_file: ((environment_name))/management-cluster-config.tar.gz
 
 - name: pk
   type: abs-resource
@@ -86,7 +86,7 @@ jobs:
   plan:
   - get: pipeline-repo
     trigger: true
-  - get: tkg-config
+  - get: tkg-management-config
     trigger: true
   - get: pk
     trigger: true
@@ -108,7 +108,7 @@ jobs:
   - get: pipeline-repo
     trigger: true
     passed: [terraform-plan]
-  - get: tkg-config
+  - get: tkg-management-config
     trigger: true
     passed: [terraform-plan]
   - get: pk
@@ -188,7 +188,7 @@ jobs:
     trigger: false
   - get: pk
     trigger: false
-  - get: tkg-config
+  - get: tkg-management-config
     trigger: false
   - get: terraform-vars
     trigger: false

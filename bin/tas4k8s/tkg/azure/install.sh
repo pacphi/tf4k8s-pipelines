@@ -66,10 +66,12 @@ EOF
 
 WKLD_CLUSTER_TFVARS=$(cat <<EOF
 environment = "$CONCOURSE_TEAM"
-path_to_tkg_config_yaml = "/tmp/build/put/tkg-config/config.yaml"
+path_to_tkg_config_yaml = "~/.tkg/config.yaml"
+path_to_gzipped_management_cluster_config = "/tmp/build/put/tkg-management-config/management-cluster-config.tar.gz"
 tkg_plan = "$TKG_PLAN"
 tkg_control_plane_node_count = $TKG_CONTROL_PLANE_NODE_COUNT
 tkg_worker_node_count = $TKG_WORKER_NODE_COUNT
+tkg_kubernetes_version = "$TKG_K8S_VERSION"
 EOF
 )
 
@@ -221,6 +223,7 @@ touch $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/s3cr3ts/$CONCOURSE_TEAM/.kube/co
 
 mkdir -p $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/s3cr3ts/$CONCOURSE_TEAM/.tkg
 touch $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/s3cr3ts/$CONCOURSE_TEAM/.tkg/config.yaml
+touch $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/s3cr3ts/$CONCOURSE_TEAM/management-cluster-config.tar.gz
 
 echo -e "$COMMON_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$IAAS/common.yml
 echo -e "$MGMT_CLUSTER_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$IAAS/create-mgmt-cluster.yml

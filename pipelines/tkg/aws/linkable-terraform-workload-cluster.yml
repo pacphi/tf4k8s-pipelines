@@ -71,21 +71,21 @@ resources:
     bucket: s3cr3ts-((uid))
     versioned_file: ((environment_name))/.kube/config
 
-- name: tkg-config
+- name: tkg-management-config
   type: s3-resource
   source:
     access_key_id: ((aws_access_key))
     secret_access_key: ((aws_secret_key))
     region_name: ((aws_region))
     bucket: s3cr3ts-((uid))
-    versioned_file: ((environment_name))/.tkg/config.yaml
+    versioned_file: ((environment_name))/management-cluster-config.tar.gz
 
 jobs:
 - name: terraform-plan
   plan:
   - get: pipeline-repo
     trigger: true
-  - get: tkg-config
+  - get: tkg-management-config
     trigger: true
   - get: terraform-vars
     trigger: true
@@ -105,7 +105,7 @@ jobs:
   - get: pipeline-repo
     trigger: true
     passed: [terraform-plan]
-  - get: tkg-config
+  - get: tkg-management-config
     trigger: true
     passed: [terraform-plan]
   - get: terraform-state
@@ -180,7 +180,7 @@ jobs:
   plan:
   - get: pipeline-repo
     trigger: false
-  - get: tkg-config
+  - get: tkg-management-config
     trigger: false
   - get: terraform-vars
     trigger: false

@@ -65,13 +65,21 @@ resources:
     container: s3cr3ts-((uid))
     versioned_file: ((environment_name))/az_rsa.pub
 
-- name: tkg-config
+- name: tkg-bootstrap-config
   type: abs-resource
   source:
     storage_account_name: ((storage_account_name))
     storage_account_key: ((storage_account_key))
     container: s3cr3ts-((uid))
     versioned_file: ((environment_name))/.tkg/config.yaml
+
+- name: tkg-management-config
+  type: abs-resource
+  source:
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: s3cr3ts-((uid))
+    versioned_file: ((environment_name))/management-cluster-config.tar.gz
 
 - name: tkg-cli
   type: abs-resource
@@ -133,20 +141,20 @@ jobs:
         params:
           options: trigger-job -j ((current_pipeline_name))/terraform-plan
 
-- name: store-tkg-config
+- name: store-tkg-bootstrap-config
   plan:
   - get: terraform-state
     trigger: true
     passed: [terraform-apply]
-  - get: tkg-config
+  - get: tkg-bootstrap-config
     trigger: false
   - task: get-cluster-credentials
     config:
       inputs:
         - name: terraform-state
-        - name: tkg-config
+        - name: tkg-bootstrap-config
       outputs:
-        - name: mgmt-config
+        - name: seeded-config
       platform: linux
       image_resource:
         type: registry-image
@@ -156,17 +164,17 @@ jobs:
         args:
         - -exc
         - |
-          cat terraform-state/metadata | jq -r '.config_yaml_contents' > mgmt-config/config.yaml
-  - put: tkg-config
+          cat terraform-state/metadata | jq -r '.config_yaml_contents' > seeded-config/config.yaml
+  - put: tkg-bootstrap-config
     params:
-      file: mgmt-config/config.yaml
+      file: seeded-config/config.yaml
 
 - name: create-management-cluster
   plan:
   - get: pipeline-repo
-  - get: tkg-config
+  - get: tkg-bootstrap-config
     trigger: true
-    passed: [store-tkg-config]
+    passed: [store-tkg-bootstrap-config]
   - get: kind-on-c
   - get: kind-release
     params:
@@ -190,10 +198,12 @@ jobs:
         - -xeuc
         - |
           cp tkg-cli/*.tar.gz inputs/
-          cp tkg-config/config.yaml inputs/
-  - task: create-mgmt-cluster-via-kind
+          cp tkg-bootstrap-config/config.yaml inputs/
+  - task: create-management-cluster-via-kind
     privileged: true
     file: kind-on-c/kind.yaml
+    output_mapping:
+      outputs: management-config
     params:
       KIND_TESTS: |
         cd inputs
@@ -203,15 +213,35 @@ jobs:
           mv tkg/$i /usr/local/bin/$( echo $i | cut -d'-' -f1)
         done
         tkg init --infrastructure azure --plan ((tkg_plan)) --name ((tkg_management_cluster_name)) --config config.yaml --ceip-participation false --use-existing-bootstrap-cluster --v 6
-  - put: tkg-config
+        cp -rf config.yaml ~/.tkg
+        mv ~/.tkg outputs
+        mv ~/.kube-tkg outputs
+  - task: capture-tkg-management-config
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: { repository: bash }
+      inputs: 
+        - name: management-config
+      outputs:
+        - name: gzipped-management-config
+      run:
+        path: bash
+        args:
+          - -c
+          - |
+            cd management-config
+            tar -czvf ../gzipped-management-config/management-cluster-config.tar.gz .tkg .kube-tkg
+  - put: tkg-management-config
     params:
-      file: inputs/config.yaml
+      file: gzipped-management-config/management-cluster-config.tar.gz
 
 - name: delete-management-cluster
   plan:
   - get: pipeline-repo
     trigger: false
-  - get: tkg-config
+  - get: tkg-management-config
     trigger: false
   - get: kind-on-c
     trigger: false
@@ -221,6 +251,7 @@ jobs:
       globs:
       - kind-linux-amd64 
   - get: tkg-cli
+    trigger: false
   - task: aggregate-inputs-for-kind-on-c
     config:
       platform: linux
@@ -229,7 +260,7 @@ jobs:
         source: { repository: bash }
       inputs:
         - name: tkg-cli
-        - name: tkg-config
+        - name: tkg-management-config
       outputs:
         - name: inputs
       run:
@@ -238,8 +269,8 @@ jobs:
         - -xeuc
         - |
           cp tkg-cli/*.tar.gz inputs/
-          cp tkg-config/config.yaml inputs/
-  - task: delete-mgmt-cluster-via-kind
+          tar -xf tkg-management-config/management-cluster-config.tar.gz -C inputs
+  - task: delete-management-cluster-via-kind
     privileged: true
     file: kind-on-c/kind.yaml
     params:
@@ -250,7 +281,9 @@ jobs:
           chmod +x tkg/$i
           mv tkg/$i /usr/local/bin/$( echo $i | cut -d'-' -f1)
         done
-        tkg delete management-cluster --name ((tkg_management_cluster_name)) --config config.yaml --use-existing-bootstrap-cluster --v 6
+        mv .tkg ~/
+        mv .kube-tkg ~/
+        tkg delete management-cluster --name ((tkg_management_cluster_name)) --use-existing-bootstrap-cluster --v 6
 
 - name: terraform-destroy
   plan:
@@ -272,7 +305,7 @@ jobs:
 
 - name: trigger-next-pipeline-job
   plan:
-  - get: tkg-config
+  - get: tkg-management-config
     trigger: true
     passed: [create-management-cluster]
   - put: fly

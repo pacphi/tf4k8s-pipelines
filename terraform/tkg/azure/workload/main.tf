@@ -20,7 +20,7 @@ variable "tkg_plan" {
 
 variable "tkg_kubernetes_version" {
   description = "A version of Kubernetes that is made available by a management cluster"
-  default = "v1.19.1+vmware.2"
+  default = "v1.19.3+vmware.1"
 }
 
 variable "tkg_control_plane_node_count" {
