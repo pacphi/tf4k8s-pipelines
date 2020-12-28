@@ -115,45 +115,20 @@ jobs:
     params:
       terraform_source: pipeline-repo/terraform/((terraform_module))
       plan_run: true
+  - put: kubeconfig
+    params:
+      file: ~/.kube/config
   on_failure:
     do:
       - put: fly
         params:
           options: trigger-job -j ((current_pipeline_name))/terraform-plan
 
-- name: store-kubeconfig
-  plan:
-  - get: terraform-state
-    trigger: true
-    passed: [terraform-apply]
-  - get: kubeconfig
-    trigger: false
-  - task: get-cluster-credentials
-    config:
-      inputs:
-        - name: terraform-state
-        - name: kubeconfig
-      outputs:
-        - name: kubeconfig
-      platform: linux
-      image_resource:
-        type: registry-image
-        source: { repository: dwdraju/alpine-curl-jq }
-      run:
-        path: sh
-        args:
-        - -exc
-        - |
-          cat terraform-state/metadata | jq -r '.kubeconfig_contents' > kubeconfig/config
-  - put: kubeconfig
-    params:
-      file: kubeconfig/config
-
 - name: smoke-test
   plan:
   - get: kubeconfig
     trigger: true
-    passed: [store-kubeconfig]
+    passed: [terrafrom-apply]
   - task: get-cluster-information
     config:
       inputs:
