@@ -117,7 +117,7 @@ jobs:
       plan_run: true
   - put: kubeconfig
     params:
-      file: ~/.kube/config
+      file: /root/.kube/config
   on_failure:
     do:
       - put: fly
