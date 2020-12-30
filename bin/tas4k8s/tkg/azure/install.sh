@@ -59,19 +59,12 @@ WKLD_CLUSTER_CI_CONFIG=$(cat <<EOF
 current_pipeline_name: create-workload-cluster
 next_pipeline_name: install-certmanager
 next_plan_name: terraform-plan
-terraform_module: $IAAS/workload
-azure_storage_bucket_folder: $IAAS/workload
-EOF
-)
-
-WKLD_CLUSTER_TFVARS=$(cat <<EOF
-environment = "$CONCOURSE_TEAM"
-path_to_tkg_config_yaml = "~/.tkg/config.yaml"
-path_to_gzipped_management_cluster_config = "/tmp/build/put/tkg-management-config/management-cluster-config.tar.gz"
-tkg_plan = "$TKG_PLAN"
-tkg_control_plane_node_count = $TKG_CONTROL_PLANE_NODE_COUNT
-tkg_worker_node_count = $TKG_WORKER_NODE_COUNT
-tkg_kubernetes_version = "$TKG_K8S_VERSION"
+tkg_workload_cluster_name: $TKG_WORKLOAD_CLUSTER_NAME
+tkg_plan: $TKG_PLAN
+tkg_control_plane_node_count: $TKG_CONTROL_PLANE_NODE_COUNT
+tkg_worker_node_count: $TKG_WORKER_NODE_COUNT
+tkg_kubernetes_version: $TKG_K8S_VERSION
+tkg_cli_gz: $TKG_CLI_GZ
 EOF
 )
 
@@ -210,7 +203,6 @@ EOF
 mkdir -p ci/$CONCOURSE_TEAM/$IAAS
 mkdir -p ci/$CONCOURSE_TEAM/$CLOUD
 mkdir -p $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tf4k8s-pipelines-config/$CONCOURSE_TEAM/terraform/$IAAS/mgmt
-mkdir -p $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tf4k8s-pipelines-config/$CONCOURSE_TEAM/terraform/$IAAS/workload
 mkdir -p $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tf4k8s-pipelines-config/$CONCOURSE_TEAM/terraform/$CLOUD/dns
 mkdir -p $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tf4k8s-pipelines-config/$CONCOURSE_TEAM/terraform/$CLOUD/certmanager
 mkdir -p $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tf4k8s-pipelines-config/$CONCOURSE_TEAM/terraform/k8s/nginx-ingress-controller
@@ -238,7 +230,6 @@ echo -e "$TAS4K8S_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$CLOUD/install-tas4k8s.ym
 
 echo -e "$DNS_TFVARS" > $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tf4k8s-pipelines-config/$CONCOURSE_TEAM/terraform/$CLOUD/dns/terraform.tfvars
 echo -e "$MGMT_CLUSTER_TFVARS" > $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tf4k8s-pipelines-config/$CONCOURSE_TEAM/terraform/$IAAS/mgmt/terraform.tfvars
-echo -e "$WKLD_CLUSTER_TFVARS" > $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tf4k8s-pipelines-config/$CONCOURSE_TEAM/terraform/$IAAS/workload/terraform.tfvars
 echo -e "$CERTMGR_TFVARS" > $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tf4k8s-pipelines-config/$CONCOURSE_TEAM/terraform/$CLOUD/certmanager/terraform.tfvars
 echo -e "$NIC_TFVARS" > $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tf4k8s-pipelines-config/$CONCOURSE_TEAM/terraform/k8s/nginx-ingress-controller/terraform.tfvars
 echo -e "$EXTERNAL_DNS_TFVARS" > $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tf4k8s-pipelines-config/$CONCOURSE_TEAM/terraform/$CLOUD/external-dns/terraform.tfvars
@@ -269,7 +260,7 @@ fly -t $CONCOURSE_ALIAS set-team --team-name $CONCOURSE_TEAM --local-user $CONCO
 # Set pipelines
 fly -t $CONCOURSE_ALIAS set-pipeline -p create-dns -c ./pipelines/$CLOUD/linkable-terraformer.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$CLOUD/create-dns.yml --team=$CONCOURSE_TEAM --non-interactive
 fly -t $CONCOURSE_ALIAS set-pipeline -p create-management-cluster -c ./pipelines/$IAAS/linkable-terraform-mgmt-cluster$TKG_PIPELINE_DEF_SUFFIX.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/create-mgmt-cluster.yml --team=$CONCOURSE_TEAM --non-interactive
-fly -t $CONCOURSE_ALIAS set-pipeline -p create-workload-cluster -c ./pipelines/$IAAS/linkable-terraform-workload-cluster.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/create-workload-cluster.yml --team=$CONCOURSE_TEAM --non-interactive
+fly -t $CONCOURSE_ALIAS set-pipeline -p create-workload-cluster -c ./pipelines/$IAAS/linkable-terraform-workload-cluster$TKG_PIPELINE_DEF_SUFFIX.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/create-workload-cluster.yml --team=$CONCOURSE_TEAM --non-interactive
 fly -t $CONCOURSE_ALIAS set-pipeline -p install-certmanager -c ./pipelines/$CLOUD/linkable-terraformer-with-carvel.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$CLOUD/install-certmanager.yml --team=$CONCOURSE_TEAM --non-interactive
 fly -t $CONCOURSE_ALIAS set-pipeline -p install-nginx-ingress-controller -c ./pipelines/$CLOUD/linkable-terraformer-with-carvel.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$CLOUD/install-nginx-ingress-controller.yml --team=$CONCOURSE_TEAM --non-interactive
 fly -t $CONCOURSE_ALIAS set-pipeline -p install-external-dns -c ./pipelines/$CLOUD/linkable-terraformer-with-carvel.yml -l ./ci/$CONCOURSE_TEAM/$IAAS/common.yml -l ./ci/$CONCOURSE_TEAM/$CLOUD/install-external-dns.yml --team=$CONCOURSE_TEAM --non-interactive

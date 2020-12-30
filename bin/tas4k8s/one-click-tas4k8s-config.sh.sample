@@ -13,7 +13,7 @@ CARVEL_IMAGE="pacphi/terraform-resource-with-carvel"
 TKG_IMAGE="pacphi/terraform-resource-with-tkg-tmc"
 
 # Either blank ("") or "-v2"
-# If "-v2" source tkg client from pre-downloaded location
+# If "-v2" source tkg cli from pre-downloaded location
 TKG_PIPELINE_DEF_SUFFIX="-v2"
 TKG_CLI_GZ="tkg-linux-amd64-v1.2.1-vmware.1.tar.gz"
 PATH_TO_TKG_CLI_GZ="$HOME/Downloads/$TKG_CLI_GZ"
@@ -104,6 +104,7 @@ GKE_NODES=8
 # Plan must be one of: [ dev, prod ]
 TKG_PLAN="dev"
 TKG_MGMT_CLUSTER_NAME="$K8S_ENV-mgmt"
+TKG_WORKLOAD_CLUSTER_NAME="$K8S_ENV-workload"
 TKG_K8S_VERSION="v1.19.3+vmware.1"
 TKG_CONTROL_PLANE_NODE_COUNT=1
 TKG_WORKER_NODE_COUNT=8
@@ -111,8 +112,8 @@ TKG_WORKER_NODE_COUNT=8
 
 ## TKG on AWS specific
 # Be sure to fill out all EKS specific config above too
-TKG_CONTROL_PLANE_MACHINE_TYPE="m5a.large"
-TKG_WORKER_NODE_MACHINE_TYPE="m5a.xlarge"
+#TKG_CONTROL_PLANE_MACHINE_TYPE="m5a.large"
+#TKG_WORKER_NODE_MACHINE_TYPE="m5a.xlarge"
 
 
 ## TKG on Azure specific
