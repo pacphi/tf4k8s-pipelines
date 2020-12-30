@@ -114,11 +114,7 @@ jobs:
       terraform_source: pipeline-repo/terraform/((terraform_module))
       plan_only: true
       var_files: [terraform-vars/terraform.tfvars]
-  on_failure:
-    do:
-      - put: fly
-        params:
-          options: trigger-job -j ((current_pipeline_name))/terraform-plan
+  
         
 - name: terraform-apply
   plan:
@@ -135,11 +131,7 @@ jobs:
     params:
       terraform_source: pipeline-repo/terraform/((terraform_module))
       plan_run: true
-  on_failure:
-    do:
-      - put: fly
-        params:
-          options: trigger-job -j ((current_pipeline_name))/terraform-plan
+  
 
 - name: store-tkg-bootstrap-config
   plan:

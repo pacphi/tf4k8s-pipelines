@@ -191,6 +191,9 @@ mkdir -p $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tf4k8s-pipelines-config/$CONC
 mkdir -p $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/s3cr3ts/$CONCOURSE_TEAM/.kube
 touch $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/s3cr3ts/$CONCOURSE_TEAM/.kube/config
 
+mkdir -p $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tas4k8s-bundles/$CONCOURSE_TEAM
+touch $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tas4k8s-bundles/$CONCOURSE_TEAM/tas4k8s.tar.gz
+
 echo -e "$COMMON_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$IAAS/common.yml
 echo -e "$DNS_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$IAAS/create-dns.yml
 echo -e "$CLUSTER_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$IAAS/create-cluster.yml
@@ -215,6 +218,7 @@ ssh-keygen -m PEM -t rsa -b 4096 -f $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/s3
 # Sync local config directory to bucket
 rclone sync $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tf4k8s-pipelines-config $RCLONE_ALIAS:tf4k8s-pipelines-config-$SUFFIX --auto-confirm
 rclone sync $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/s3cr3ts $RCLONE_ALIAS:s3cr3ts-$SUFFIX --auto-confirm
+rclone sync $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tas4k8s-bundles $RCLONE_ALIAS:tas4k8s-bundles-$SUFFIX --auto-confirm
 
 # First login to Concourse instance
 fly -t $CONCOURSE_ALIAS login --concourse-url $CONCOURSE_ENDPOINT -u $CONCOURSE_ADMIN_USERNAME -p $CONCOURSE_ADMIN_PASSWORD

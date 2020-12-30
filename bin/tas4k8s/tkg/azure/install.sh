@@ -217,6 +217,9 @@ mkdir -p $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/s3cr3ts/$CONCOURSE_TEAM/.tkg
 touch $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/s3cr3ts/$CONCOURSE_TEAM/.tkg/config.yaml
 touch $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/s3cr3ts/$CONCOURSE_TEAM/management-cluster-config.tar.gz
 
+mkdir -p $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tas4k8s-bundles/$CONCOURSE_TEAM
+touch $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tas4k8s-bundles/$CONCOURSE_TEAM/tas4k8s.tar.gz
+
 echo -e "$COMMON_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$IAAS/common.yml
 echo -e "$MGMT_CLUSTER_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$IAAS/create-mgmt-cluster.yml
 echo -e "$WKLD_CLUSTER_CI_CONFIG" > $PWD/ci/$CONCOURSE_TEAM/$IAAS/create-workload-cluster.yml
@@ -243,6 +246,7 @@ ssh-keygen -m PEM -t rsa -b 4096 -f $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/s3
 # Sync local config directory to bucket
 rclone sync $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tf4k8s-pipelines-config $RCLONE_ALIAS:tf4k8s-pipelines-config-$SUFFIX --auto-confirm
 rclone sync $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/s3cr3ts $RCLONE_ALIAS:s3cr3ts-$SUFFIX --auto-confirm
+rclone sync $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/tas4k8s-bundles $RCLONE_ALIAS:tas4k8s-bundles-$SUFFIX --auto-confirm
 
 if [ "$TKG_PIPELINE_DEF_SUFFIX" == "-v2" ]; then
   mkdir -p $HOME/$TF4K8S_PIPELINES_CONFIG_PARENT_DIR/binaries/$CONCOURSE_TEAM/
