@@ -376,8 +376,8 @@ Admittedly this is a bit of effort to assemble.  To help get you started, visit 
     - [x] AWS (EKS)
     - [x] Azure (AKS)
     - [x] GCP (GKE)
-    - [ ] TKG (Azure)
-    - [ ] TKG (AWS)
+    - [x] TKG (Azure)
+    - [x] TKG (AWS)
 * Adapt existing Concourse pipeline definitions to 
     - [ ] encrypt, mask and securely source secrets (e.g., cloud credentials, .kube/config)
     - [ ] add smoke-tests
