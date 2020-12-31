@@ -4,8 +4,8 @@ resources:
   type: git
   icon: github
   source:
-    uri: https://github.com/pacphi/tf4k8s-pipelines.git
-    branch: main
+    uri: ((pipeline_repo))
+    branch: ((pipeline_repo_branch))
 
 # Where we will push the image
 - name: terraform-resource-with-tkg-tmc-image
@@ -39,6 +39,6 @@ jobs:
         CONTEXT: tf4k8s-pipelines-repo/images/terraform-resource-with-tkg-tmc
       run:
         path: build
-  - put: terraform-resource-with-tkg-tmc
+  - put: terraform-resource-with-tkg-tmc-image
     params:
       image: image/image.tar

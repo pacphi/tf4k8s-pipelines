@@ -1,0 +1,311 @@
+resource_types:
+- name: terraform
+  type: docker-image
+  source:
+    repository: ((terraform_resource_with_tkg_image))
+    tag: latest
+    username: ((registry_username))
+    password: ((registry_password))
+
+- name: abs-resource
+  type: docker-image
+  source:
+    repository: pcfabr/azure-blobstore-resource
+    tag: 0.11.0
+
+- name: fly
+  type: docker-image
+  source:
+    repository: troykinsella/concourse-fly-resource
+    tag: 2.0.1
+
+resources:
+# The repo that contains Terraform
+- name: pipeline-repo
+  type: git
+  icon: github
+  source:
+    uri: ((pipeline_repo))
+    branch: ((pipeline_repo_branch))
+
+- name: terraform-state
+  type: terraform
+  source:
+    env_name: ((environment_name))
+    backend_type: azurerm
+    backend_config:
+      storage_account_name: ((storage_account_name))
+      access_key: ((storage_account_key))
+      container_name: tf4k8s-pipelines-state-((uid))
+      key: ((environment_name))/terraform/((azure_storage_bucket_folder))/terraform.tfstate
+
+- name: terraform-vars
+  type: abs-resource
+  source:
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: tf4k8s-pipelines-config-((uid))
+    versioned_file: ((environment_name))/terraform/((azure_storage_bucket_folder))/terraform.tfvars
+
+- name: fly
+  type: fly
+  source:
+    url: ((concourse_url))
+    username: ((concourse_username))
+    password: ((concourse_password))
+    team: ((concourse_team_name))
+    insecure: ((concourse_is_insecure))
+    debug: ((concourse_is_in_debug_mode))
+
+- name: pk
+  type: abs-resource
+  source:
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: s3cr3ts-((uid))
+    versioned_file: ((environment_name))/az_rsa.pub
+
+- name: tkg-bootstrap-config
+  type: abs-resource
+  source:
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: s3cr3ts-((uid))
+    versioned_file: ((environment_name))/.tkg/config.yaml
+
+- name: tkg-management-config
+  type: abs-resource
+  source:
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: s3cr3ts-((uid))
+    versioned_file: ((environment_name))/management-cluster-config.tar.gz
+
+- name: tkg-cli
+  type: abs-resource
+  source:
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: binaries-((uid))
+    versioned_file: ((environment_name))/((tkg_cli_gz))
+
+- name: kind-release
+  type: github-release
+  source:
+    owner: kubernetes-sigs
+    repository: kind
+
+- name: kind-on-c
+  type: git
+  source:
+    uri: https://github.com/pivotal-k8s/kind-on-c
+
+jobs:
+- name: terraform-plan
+  plan:
+  - get: pipeline-repo
+    trigger: true
+  - get: pk
+    trigger: true
+  - get: terraform-vars
+    trigger: true
+  - put: terraform-state
+    params:
+      terraform_source: pipeline-repo/terraform/((terraform_module))
+      plan_only: true
+      var_files: [terraform-vars/terraform.tfvars]
+  
+        
+- name: terraform-apply
+  plan:
+  - get: pipeline-repo
+    trigger: true
+    passed: [terraform-plan]
+  - get: pk
+    trigger: true
+    passed: [terraform-plan]
+  - get: terraform-state
+    trigger: true
+    passed: [terraform-plan]
+  - put: terraform-state
+    params:
+      terraform_source: pipeline-repo/terraform/((terraform_module))
+      plan_run: true
+  
+
+- name: store-tkg-bootstrap-config
+  plan:
+  - get: terraform-state
+    trigger: true
+    passed: [terraform-apply]
+  - get: tkg-bootstrap-config
+    trigger: false
+  - task: get-cluster-credentials
+    config:
+      inputs:
+        - name: terraform-state
+        - name: tkg-bootstrap-config
+      outputs:
+        - name: seeded-config
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: { repository: dwdraju/alpine-curl-jq }
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          cat terraform-state/metadata | jq -r '.config_yaml_contents' > seeded-config/config.yaml
+  - put: tkg-bootstrap-config
+    params:
+      file: seeded-config/config.yaml
+
+- name: create-management-cluster
+  plan:
+  - get: pipeline-repo
+  - get: tkg-bootstrap-config
+    trigger: true
+    passed: [store-tkg-bootstrap-config]
+  - get: kind-on-c
+  - get: kind-release
+    params:
+      globs:
+      - kind-linux-amd64 
+  - get: tkg-cli
+  - task: aggregate-inputs-for-kind-on-c
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: { repository: bash }
+      inputs:
+        - name: tkg-cli
+        - name: tkg-bootstrap-config
+      outputs:
+        - name: inputs
+      run:
+        path: bash
+        args:
+        - -xeuc
+        - |
+          cp tkg-cli/*.tar.gz inputs/
+          cp tkg-bootstrap-config/config.yaml inputs/
+  - task: create-management-cluster-via-kind
+    privileged: true
+    file: kind-on-c/kind.yaml
+    output_mapping:
+      outputs: management-config
+    params:
+      KIND_TESTS: |
+        cd inputs
+        tar -xzf *.tar.gz
+        for i in $(ls -1 tkg); do
+          chmod +x tkg/$i
+          mv tkg/$i /usr/local/bin/$( echo $i | cut -d'-' -f1)
+        done
+        mkdir -p ~/.tkg
+        mv config.yaml ~/.tkg
+        cd ..
+        tkg init --infrastructure azure --plan ((tkg_plan)) --name ((tkg_management_cluster_name)) --ceip-participation false --use-existing-bootstrap-cluster --v 6
+        mv ~/.tkg outputs
+        mv ~/.kube-tkg outputs
+  - task: capture-tkg-management-config
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: { repository: bash }
+      inputs: 
+        - name: management-config
+      outputs:
+        - name: gzipped-management-config
+      run:
+        path: bash
+        args:
+          - -c
+          - |
+            cd management-config
+            tar -czvf ../gzipped-management-config/management-cluster-config.tar.gz .tkg .kube-tkg
+  - put: tkg-management-config
+    params:
+      file: gzipped-management-config/management-cluster-config.tar.gz
+
+- name: delete-management-cluster
+  plan:
+  - get: pipeline-repo
+    trigger: false
+  - get: tkg-management-config
+    trigger: false
+  - get: kind-on-c
+    trigger: false
+  - get: kind-release
+    trigger: false
+    params:
+      globs:
+      - kind-linux-amd64 
+  - get: tkg-cli
+    trigger: false
+  - task: aggregate-inputs-for-kind-on-c
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: { repository: bash }
+      inputs:
+        - name: tkg-cli
+        - name: tkg-management-config
+      outputs:
+        - name: inputs
+      run:
+        path: bash
+        args:
+        - -xeuc
+        - |
+          cp tkg-cli/*.tar.gz inputs/
+          tar -xf tkg-management-config/management-cluster-config.tar.gz -C inputs
+  - task: delete-management-cluster-via-kind
+    privileged: true
+    file: kind-on-c/kind.yaml
+    params:
+      KIND_TESTS: |
+        cd inputs
+        tar -xzf *.tar.gz
+        for i in $(ls -1 tkg); do
+          chmod +x tkg/$i
+          mv tkg/$i /usr/local/bin/$( echo $i | cut -d'-' -f1)
+        done
+        mv .tkg ~/
+        mv .kube-tkg ~/
+        cd ..
+        tkg delete management-cluster --name ((tkg_management_cluster_name)) --use-existing-bootstrap-cluster --v 6
+
+- name: terraform-destroy
+  plan:
+  - get: pipeline-repo
+    trigger: false
+  - get: pk
+    trigger: false
+  - get: terraform-vars
+    trigger: false
+  - get: terraform-state
+    trigger: false
+  - put: terraform-state
+    params:
+      terraform_source: pipeline-repo/terraform/((terraform_module))
+      action: destroy
+      var_files: [terraform-vars/terraform.tfvars]
+    get_params:
+      action: destroy
+
+- name: trigger-next-pipeline-job
+  plan:
+  - get: tkg-management-config
+    trigger: true
+    passed: [create-management-cluster]
+  - put: fly
+    params:
+      options: unpause-pipeline -p ((next_pipeline_name))
+  - put: fly
+    params:
+      options: trigger-job -j ((next_pipeline_name))/((next_plan_name))

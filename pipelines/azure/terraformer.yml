@@ -9,7 +9,7 @@ resource_types:
   type: docker-image
   source:
     repository: pcfabr/azure-blobstore-resource
-    tag: 0.10.15
+    tag: 0.11.0
 
 resources:
 # The repo that contains Terraform
@@ -17,7 +17,7 @@ resources:
   type: git
   icon: github
   source:
-    uri: https://github.com/pacphi/tf4k8s-pipelines.git
+    uri: ((pipeline_repo))
     branch: ((pipeline_repo_branch))
 
 - name: terraform-state

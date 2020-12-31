@@ -31,8 +31,10 @@ override.tf.json
 # Code
 .history/
 
-# Local environment
-.concourse-local
-
 # Concourse
 ci/
+.concourse-local
+.working/
+one-click-*-config.sh
+destroy-pipelines.sh
+images/*/dist/

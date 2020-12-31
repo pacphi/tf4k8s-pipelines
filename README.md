@@ -7,13 +7,17 @@ Sample GitOps pipelines that employ modules from [tf4k8s](https://github.com/pac
 ![Concourse pipelines screenshot](concourse-pipelines.png?raw=true "Concourse pipelines screenshot")
 ![Install TAS4K8s pipeline screenshot](install-tas4k8s.png?raw=true "Install TAS4K8s pipeline screenshot")
 
-You could spin up a local [Concourse](https://concourse-ci.org/install.html) instance for test purposes. Or you might consider employing the [control-tower](https://github.com/EngineerBetter/control-tower) CLI to deploy a self-healing, self-updating Concourse instance with [Grafana](https://grafana.com/) and [CredHub](https://docs.cloudfoundry.org/credhub/) in either AWS or GCP.
+You have some options:
+
+* spin up a local [Concourse](https://concourse-ci.org/install.html) instance for test purposes with docker-compose
+* employ the [control-tower](https://github.com/EngineerBetter/control-tower) CLI to deploy a self-healing, self-updating Concourse instance with [Grafana](https://grafana.com/) and [CredHub](https://docs.cloudfoundry.org/credhub/) in either AWS or GCP
+* dog-food `tfk48s` experiments to create a cloud zone, provision and GKE cluster, deploy foundational components plus Concourse via Helm
 
 ### Getting Started
 
 #### Deploying a local instance
 
-<details><summary>Start</summary><pre>./bin/launch-local-concourse-instance.sh</pre></details>
+<details><summary>Start</summary><pre>./bin/concourse/launch-local-concourse-instance-with-docker-compose.sh</pre></details>
 
 > This script uses [Docker Compose](https://docs.docker.com/compose/install/) to launch a local Concourse instance
 
@@ -27,9 +31,32 @@ You could spin up a local [Concourse](https://concourse-ci.org/install.html) ins
 
 <details><summary>Teardown</summary><pre>docker-compose down</pre></details>
 
+> Warning: you will not be able to spin up TKG clusters via Concourse deployed in this manner.
+
 #### Deploying a cloud-hosted instance
 
+**Option 1: via control-tower** 
+
 Consult the control-tower CLI install [documentation](https://github.com/EngineerBetter/control-tower#tldr).
+
+> Checkout the convenience scripts in the [bin/concourse](bin/concourse) directory
+
+**Option 2: via tf4k8s**
+
+Make a copy of the config sample and fill it out for your own purposes with your own credentials.
+
+```
+cd bin/concourse/gke
+cp one-click-concourse-config.sh.sample one-click-concourse-config.sh
+```
+
+Execute
+
+```
+./one-click-concourse-install.sh
+```
+
+> Credentials to the Concourse instance will be vended to you in Terraform output.
 
 ### Install the fly CLI
 
@@ -54,6 +81,8 @@ A Concourse resource based off [ljfranklin/terraform-resource](https://github.co
 ```
 fly -t <target> set-pipeline -p build-and-push-terraform-resource-with-az-cli-image \
     -c ./pipelines/build-and-push-terraform-resource-with-az-cli-image.yml \
+    --var pipeline-repo=<pipeline_repo> \
+    --var pipeline-repo-branch=<pipeline_repo_branch> \
     --var image-repo-name=<repo-name> \
     --var registry-username=<user> \
     --var registry-password=<password>
@@ -61,6 +90,8 @@ fly -t <target> unpause-pipeline -p build-and-push-terraform-resource-with-az-cl
 ```
 
 * `<target>` is the alias for the connection details to a Concourse instance
+* `<pipeline_repo>` is the Git repository that contains the Dockerfile for the container image to be built (e.g., https://github.com/pacphi/tf4k8s-pipelines.git)
+* `<pipeline_repo_branch>` is the aformentioned Git repository's branch (e.g., main)
 * `<repo-name>` is a container image repository prefix (e.g., docker.io or a private registry like harbor.envy.ironleg.me/library)
 * `<username>` and `<password>` are the credentials of an account with read/write privileges to a container image registry
 
@@ -73,6 +104,8 @@ A Concourse resource based off [ljfranklin/terraform-resource](https://github.co
 ```
 fly -t <target> set-pipeline -p build-and-push-terraform-resource-with-carvel-image \
     -c ./pipelines/build-and-push-terraform-resource-with-carvel-image.yml \
+    --var pipeline-repo=<pipeline_repo> \
+    --var pipeline-repo-branch=<pipeline_repo_branch> \
     --var image-repo-name=<repo-name> \
     --var registry-username=<user> \
     --var registry-password=<password>
@@ -80,6 +113,8 @@ fly -t <target> unpause-pipeline -p build-and-push-terraform-resource-with-carve
 ```
 
 * `<target>` is the alias for the connection details to a Concourse instance
+* `<pipeline_repo>` is the Git repository that contains the Dockerfile for the container image to be built (e.g., https://github.com/pacphi/tf4k8s-pipelines.git)
+* `<pipeline_repo_branch>` is the aformentioned Git repository's branch (e.g., main)
 * `<repo-name>` is a container image repository prefix (e.g., docker.io or a private registry like harbor.envy.ironleg.me/library)
 * `<username>` and `<password>` are the credentials of an account with read/write privileges to a container image registry
 
@@ -92,6 +127,8 @@ A simple image based on [alpine](https://alpinelinux.org/about/) that includes [
 ```
 fly -t <target> set-pipeline -p build-and-push-bby-image \
     -c ./pipelines/build-and-push-bash-bosh-and-ytt-image.yml \
+    --var pipeline-repo=<pipeline_repo> \
+    --var pipeline-repo-branch=<pipeline_repo_branch> \
     --var image-repo-name=<repo-name> \
     --var registry-username=<user> \
     --var registry-password=<password>
@@ -99,6 +136,8 @@ fly -t <target> unpause-pipeline -p build-and-push-bby-image
 ```
 
 * `<target>` is the alias for the connection details to a Concourse instance
+* `<pipeline_repo>` is the Git repository that contains the Dockerfile for the container image to be built (e.g., https://github.com/pacphi/tf4k8s-pipelines.git)
+* `<pipeline_repo_branch>` is the aformentioned Git repository's branch (e.g., main)
 * `<repo-name>` is a container image repository prefix (e.g., docker.io or a private registry like harbor.envy.ironleg.me/library)
 * `<username>` and `<password>` are the credentials of an account with read/write privileges to a container image registry
 
@@ -106,11 +145,13 @@ fly -t <target> unpause-pipeline -p build-and-push-bby-image
 
 ### Build and push the terraform-resource-with-tkg-tmc image
 
-A Concourse resource based off [ljfranklin/terraform-resource](https://github.com/ljfranklin/terraform-resource#terraform-concourse-resource) that also includes these command-line interfaces: tkg, tkgi and tmc.
+A Concourse resource based off [ljfranklin/terraform-resource](https://github.com/ljfranklin/terraform-resource#terraform-concourse-resource) that also includes these command-line interfaces: tkg and tmc.
 
 ```
 fly -t <target> set-pipeline -p build-and-push-terraform-resource-with-tkg-tmc-image \
     -c ./pipelines/build-and-push-terraform-resource-with-tkg-tmc-image.yml \
+    --var pipeline-repo=<pipeline_repo> \
+    --var pipeline-repo-branch=<pipeline_repo_branch> \
     --var image-repo-name=<repo-name> \
     --var registry-username=<user> \
     --var registry-password=<password> \
@@ -120,6 +161,8 @@ fly -t <target> unpause-pipeline -p terraform-resource-with-tkg-tmc-image
 ```
 
 * `<target>` is the alias for the connection details to a Concourse instance
+* `<pipeline_repo>` is the Git repository that contains the Dockerfile for the container image to be built (e.g., https://github.com/pacphi/tf4k8s-pipelines.git)
+* `<pipeline_repo_branch>` is the aformentioned Git repository's branch (e.g., main)
 * `<repo-name>` is a container image repository prefix (e.g., docker.io or a private registry like harbor.envy.ironleg.me/library)
 * `<username>` and `<password>` are the credentials of an account with read/write privileges to a container image registry
 * `<vmw_username>` and `<vmw_password>` are the credentials of an account on my.vmwware.com
@@ -253,6 +296,7 @@ Here are a few examples:
 terraform_resource_with_carvel_image: pacphi/terraform-resource-with-carvel
 registry_username: REPLACE_ME
 registry_password: REPLACE_ME
+pipeline_repo: https://github.com/pacphi/tf4k8s-pipelines.git
 pipeline_repo_branch: main
 environment_name: n00b
 gcp_account_key_json: |
@@ -332,8 +376,8 @@ Admittedly this is a bit of effort to assemble.  To help get you started, visit 
     - [x] AWS (EKS)
     - [x] Azure (AKS)
     - [x] GCP (GKE)
-    - [ ] TKG (Azure)
-    - [ ] TKG (AWS)
+    - [x] TKG (Azure)
+    - [x] TKG (AWS)
 * Adapt existing Concourse pipeline definitions to 
     - [ ] encrypt, mask and securely source secrets (e.g., cloud credentials, .kube/config)
     - [ ] add smoke-tests

@@ -11,7 +11,7 @@ resource_types:
   type: docker-image
   source:
     repository: pcfabr/azure-blobstore-resource
-    tag: 0.10.15
+    tag: 0.11.0
 
 resources:
 # The repo that contains Terraform
@@ -19,7 +19,7 @@ resources:
   type: git
   icon: github
   source:
-    uri: https://github.com/pacphi/tf4k8s-pipelines.git
+    uri: ((pipeline_repo))
     branch: ((pipeline_repo_branch))
 
 - name: terraform-state
@@ -48,6 +48,33 @@ resources:
     storage_account_key: ((storage_account_key))
     container: s3cr3ts-((uid))
     versioned_file: ((environment_name))/az_rsa.pub
+
+- name: tkg-bootstrap-config
+  type: abs-resource
+  source:
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: s3cr3ts-((uid))
+    versioned_file: ((environment_name))/.tkg/config.yaml
+
+- name: tkg-management-config
+  type: abs-resource
+  source:
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: s3cr3ts-((uid))
+    versioned_file: ((environment_name))/management-cluster-config.tar.gz
+
+- name: kind-release
+  type: github-release
+  source:
+    owner: kubernetes-sigs
+    repository: kind
+
+- name: kind-on-c
+  type: git
+  source:
+    uri: https://github.com/pivotal-k8s/kind-on-c
 
 jobs:
 - name: terraform-plan
@@ -79,6 +106,174 @@ jobs:
     params:
       terraform_source: pipeline-repo/terraform/((terraform_module))
       plan_run: true
+
+- name: store-tkg-bootstrap-config
+  plan:
+  - get: terraform-state
+    trigger: true
+    passed: [terraform-apply]
+  - get: tkg-bootstrap-config
+    trigger: false
+  - task: get-cluster-credentials
+    config:
+      inputs:
+        - name: terraform-state
+        - name: tkg-bootstrap-config
+      outputs:
+        - name: seeded-config
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: { repository: dwdraju/alpine-curl-jq }
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          cat terraform-state/metadata | jq -r '.config_yaml_contents' > seeded-config/config.yaml
+  - put: tkg-bootstrap-config
+    params:
+      file: seeded-config/config.yaml
+
+- name: create-management-cluster
+  plan:
+  - get: pipeline-repo
+  - get: tkg-bootstrap-config
+    trigger: true
+    passed: [store-tkg-bootstrap-config]
+  - get: kind-on-c
+  - get: kind-release
+    params:
+      globs:
+      - kind-linux-amd64 
+  - task: get-tkg-cli
+    file: pipeline-repo/tasks/get-myvmw-product/task.yml
+    input_mapping:
+      pipeline: pipeline-repo
+    output_mapping:
+      product: tkg-cli
+    params:
+      VMWUSER: ((vmw_username))
+      VMWPASS: ((vmw_password))
+      PRODUCT_CATEGORY: vmware_tanzu_kubernetes_grid
+      PRODUCT_VERSION: 1_x
+      PRODUCT_FILE_GLOB: tkg-linux-amd64.*.tar.gz
+  - task: aggregate-inputs-for-kind-on-c
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: { repository: bash }
+      inputs:
+        - name: tkg-cli
+        - name: tkg-bootstrap-config
+      outputs:
+        - name: inputs
+      run:
+        path: bash
+        args:
+        - -xeuc
+        - |
+          cp tkg-cli/*.tar.gz inputs/
+          cp tkg-bootstrap-config/config.yaml inputs/
+  - task: create-management-cluster-via-kind
+    privileged: true
+    file: kind-on-c/kind.yaml
+    input_mapping:
+      inputs: tkg-cli
+    output_mapping:
+      outputs: management-config
+    params:
+      KIND_TESTS: |
+        cd inputs
+        tar -xzf *.tar.gz
+        for i in $(ls -1 tkg); do
+          chmod +x tkg/$i
+          mv tkg/$i /usr/local/bin/$( echo $i | cut -d'-' -f1)
+        done
+        mkdir -p ~/.tkg
+        mv config.yaml ~/.tkg
+        cd ..
+        tkg init --infrastructure azure --plan ((tkg_plan)) --name ((tkg_management_cluster_name)) --ceip-participation false --use-existing-bootstrap-cluster --v 6
+        mv ~/.tkg outputs
+        mv ~/.kube-tkg outputs
+  - task: capture-tkg-management-config
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: { repository: bash }
+      inputs: 
+        - name: management-config
+      outputs:
+        - name: gzipped-management-config
+      run:
+        path: bash
+        args:
+          - -c
+          - |
+            cd management-config
+            tar -czvf ../gzipped-management-config/management-cluster-config.tar.gz .tkg .kube-tkg
+  - put: tkg-management-config
+    params:
+      file: gzipped-management-config/management-cluster-config.tar.gz
+
+- name: delete-management-cluster
+  plan:
+  - get: pipeline-repo
+    trigger: false
+  - get: tkg-management-config
+    trigger: false
+  - get: kind-on-c
+    trigger: false
+  - get: kind-release
+    trigger: false
+    params:
+      globs:
+      - kind-linux-amd64 
+  - task: get-tkg-cli
+    file: pipeline-repo/tasks/get-myvmw-product/task.yml
+    params:
+      VMWUSER: ((vmw_username))
+      VMWPASS: ((vmw_password))
+      PRODUCT_CATEGORY: vmware_tanzu_kubernetes_grid
+      PRODUCT_VERSION: 1_x
+      PRODUCT_FILE_GLOB: tkg-linux-amd64.*.tar.gz
+    output_mapping:
+      product: tkg-cli
+  - task: aggregate-inputs-for-kind-on-c
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: { repository: bash }
+      inputs:
+        - name: tkg-cli
+        - name: tkg-management-config
+      outputs:
+        - name: inputs
+      run:
+        path: bash
+        args:
+        - -xeuc
+        - |
+          cp tkg-cli/*.tar.gz inputs/
+          tar -xf tkg-management-config/management-cluster-config.tar.gz -C inputs
+  - task: delete-management-cluster-via-kind
+    privileged: true
+    file: kind-on-c/kind.yaml
+    params:
+      KIND_TESTS: |
+        cd inputs
+        tar -xzf *.tar.gz
+        for i in $(ls -1 tkg); do
+          chmod +x tkg/$i
+          mv tkg/$i /usr/local/bin/$( echo $i | cut -d'-' -f1)
+        done
+        mv .tkg ~/
+        mv .kube-tkg ~/
+        cd ..
+        tkg delete management-cluster --name ((tkg_management_cluster_name)) --use-existing-bootstrap-cluster --v 6
 
 - name: terraform-destroy
   plan:

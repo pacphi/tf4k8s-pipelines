@@ -22,6 +22,7 @@ module "tkg_aws_mgmt_cluster" {
   control_plane_machine_type = var.control_plane_machine_type
   node_machine_type = var.node_machine_type
   path_to_tkg_config_yaml = var.path_to_tkg_config_yaml
+  do_init = false
 }
 
 variable "environment" {

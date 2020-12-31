@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Launches a local instance of Concourse using Docker Compose
 
-mkdir .concourse-local
+mkdir -p .concourse-local
 git clone https://github.com/concourse/concourse-docker .concourse-local
 cd .concourse-local
 ./keys/generate

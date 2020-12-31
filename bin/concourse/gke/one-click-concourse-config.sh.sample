@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+## General settings
+
+##>> Path to credentials.json file
+GOOGLE_APPLICATION_CREDENTIALS="REPLACE_ME"
+
+EMAIL_ADDRESS="REPLACE_ME"
+BASE_NAME="REPLACE_ME"
+BASE_DOMAIN="$BASE_NAME.me"
+SUB_NAME="REPLACE_ME"
+SUB_DOMAIN="$SUB_NAME.$BASE_DOMAIN"
+K8S_ENV="tf4k8s-$SUB_NAME-cluster"
+
+
+## GKE specific
+
+GCP_PROJECT="REPLACE_ME"
+GCP_REGION="us-west1"
+GKE_NODE_TYPE="n2-standard-16"
+GKE_NODES=1

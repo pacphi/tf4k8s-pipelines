@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+
+## IAAS must be set to one of [ aws, azure, gcp, tkg/aws, tkg/azure ]
+
+IAAS="REPLACE_ME"
+
+
+## General settings
+
+EMAIL_ADDRESS="REPLACE_ME"
+BBY_IMAGE="pacphi/bby"
+CARVEL_IMAGE="pacphi/terraform-resource-with-carvel"
+TKG_IMAGE="pacphi/terraform-resource-with-tkg-tmc"
+
+# Either blank ("") or "-v2"
+# If "-v2" source tkg cli from pre-downloaded location
+TKG_PIPELINE_DEF_SUFFIX="-v2"
+TKG_CLI_GZ="tkg-linux-amd64-v1.2.1-vmware.1.tar.gz"
+PATH_TO_TKG_CLI_GZ="$HOME/Downloads/$TKG_CLI_GZ"
+
+# Create pipelines config parent directory
+TF4K8S_PIPELINES_CONFIG_PARENT_DIR=".tf4k8s"
+
+# Container registry credentials
+# Must be set to non-blank value if sourcing images from anywhere other than a public Dockerhub repository
+CONTAINER_REGISTRY_USERNAME=""
+CONTAINER_REGISTRY_PASSWORD=""
+
+TF4K8S_PIPELINE_REPO="https://github.com/pacphi/tf4k8s-pipelines.git"
+TF4K8S_PIPELINE_REPO_BRANCH="one-click"
+TF4K8S_SCRIPTS_REPO="https://github.com/pacphi/tf4k8s.git"
+TF4K8S_SCRIPTS_REPO_BRANCH="master"
+SERVICE_ACCOUNT_NAME="tf4k8s-sa"
+BASE_NAME="REPLACE_ME"
+BASE_DOMAIN="$BASE_NAME.me"
+SUB_NAME="REPLACE_ME"
+SUB_DOMAIN="$SUB_NAME.$BASE_DOMAIN"
+K8S_ENV="tf4k8s-$SUB_NAME"
+
+# Tanzu Network credentials
+TANZU_NETWORK_ACCOUNT_USERNAME=$EMAIL_ADDRESS
+TANZU_NETWORK_ACCOUNT_PASSWORD="REPLACE_ME"
+TANZU_NETWORK_API_TOKEN="REPLACE_ME"
+# Use a regex to define the product version of Tanzu Application Service for Kubernetes (available on the Tanzu Network)
+TAS4K8S_VERSION="3\.1\.0\-build\.*"
+
+# My VMware credentials
+MY_VMWARE_USERNAME="REPLACE_ME"
+MY_VMWARE_PASSWORD="REPLACE_ME"
+
+
+## AKS specific
+
+AZ_REGION="West US 2"
+AZ_SUBSCRIPTION_ID="REPLACE_ME"
+AZ_TENANT_ID="REPLACE_ME"
+AZ_APP_NAME="$SERVICE_ACCOUNT_NAME"
+# Secret you select here must adhere to Azure's password policy
+AZ_CLIENT_SECRET="REPLACE_ME"
+# An existing resource group
+AZ_RESOURCE_GROUP="REPLACE_ME"
+# An existing storage account and key
+AZ_STORAGE_ACCOUNT_NAME="REPLACE_ME"
+AZ_STORAGE_ACCOUNT_KEY="REPLACE_ME"
+AKS_NODES=8
+AKS_NODE_TYPE="Standard_D4s_v3"
+
+
+## EKS specific
+
+AWS_SERVICE_ACCOUNT="$SERVICE_ACCOUNT_NAME"
+# @see https://aws.amazon.com/blogs/security/aws-iam-introduces-updated-policy-defaults-for-iam-user-passwords/
+AWS_SERVICE_ACCOUNT_PASSWORD="REPLACE_ME"
+AWS_REGION="us-west-2"
+AWS_NODE_AZ="us-west2-a"
+AWS_NODE_AZ_1="us-west2-b"
+AWS_NODE_AZ_2="us-west2-c"
+# Supply existing administrator credentials here (must have iam:CreateUser)
+# We'll create a new service account that will itself have administrator privileges
+# Values here will be replaced with those of the service account
+AWS_ACCESS_KEY="REPLACE_ME"
+AWS_SECRET_KEY="REPLACE_ME"
+AWS_ROUTE53_BASE_HOSTED_ZONE_ID="REPLACE_ME"
+EKS_NAME="REPLACE_ME"
+EKS_DESIRED_NODES=5
+EKS_MIN_NODES=8
+EKS_MAX_NODES=10
+EKS_K8S_VERSION="1.18.8-amazon2"
+EKS_NODE_TYPE="t3a.medium"
+SSH_KEY_NAME="REPLACE_ME"
+
+
+## GKE specific
+
+GCP_PROJECT="REPLACE_ME"
+GCP_SERVICE_ACCOUNT="$SERVICE_ACCOUNT_NAME"
+GCP_REGION="us-west1"
+GKE_NODE_TYPE="e2-standard-4"
+GKE_NODES=8
+
+
+## TKG specific (applies to all targeted infra)
+
+# Plan must be one of: [ dev, prod ]
+TKG_PLAN="dev"
+TKG_MGMT_CLUSTER_NAME="$K8S_ENV-mgmt"
+TKG_WORKLOAD_CLUSTER_NAME="$K8S_ENV-workload"
+TKG_K8S_VERSION="v1.19.3+vmware.1"
+TKG_CONTROL_PLANE_NODE_COUNT=1
+TKG_WORKER_NODE_COUNT=8
+
+
+## TKG on AWS specific
+# Be sure to fill out all EKS specific config above too
+#TKG_CONTROL_PLANE_MACHINE_TYPE="m5a.large"
+#TKG_WORKER_NODE_MACHINE_TYPE="m5a.xlarge"
+
+
+## TKG on Azure specific
+# Be sure to fill out all AKS specific config above too
+
+AZ_REGION="westus2"
+AZ_BASE_IMAGE_OS="k8s-1dot19dot3-ubuntu-1804"
+TKG_CONTROL_PLANE_MACHINE_TYPE="Standard_D2s_v3"
+TKG_WORKER_NODE_MACHINE_TYPE="Standard_D4s_v3"
+
+
+## rclone
+
+RCLONE_ALIAS="REPLACE_ME"
+
+
+## Concourse
+
+CONCOURSE_ALIAS="local"
+# If you are running a Docker Compose installation of Concourse do not change the settings below
+CONCOURSE_URL="http://web:8080"
+CONCOURSE_ADMIN_USERNAME="test"
+CONCOURSE_ADMIN_PASSWORD="test"
+CONCOURSE_TEAM="$SUB_NAME"
+IS_CONCOURSE_INSECURE=true
+IS_CONCOURSE_IN_DEBUG_MODE=true

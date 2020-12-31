@@ -4,7 +4,7 @@ LABEL author=cphillipson@pivotal.io
 ENV BOSH_VERSION=6.4.1 \
     YTT_VERSION=0.30.0
 
-RUN apk add --no-cache bash gawk sed grep bc coreutils && \
+RUN apk add --no-cache bash gawk sed grep bc coreutils jq && \
     wget -O bosh https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-${BOSH_VERSION}-linux-amd64 && \
     chmod +x bosh && \
     mv bosh /usr/local/bin && \

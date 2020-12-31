@@ -3,11 +3,10 @@ FROM alpine:3.12 as build
 ARG vmw_username 
 ARG vmw_password
 
-ENV TMC_VERSION=0.2.0-f783ab07 \
-    TKG_VERSION=1.2.0-vmware.1 \
+ENV TMC_VERSION=0.2.0-001dbc95 \
+    TKG_VERSION=1.2.1-vmware.1 \
     VMWUSER=$vmw_username \
-    VMWPASS=$vmw_password \
-    TANZU_NETWORK_API_TOKEN=$tanzu_network_api_token
+    VMWPASS=$vmw_password
 
 RUN apk add --no-cache bash gawk sed grep bc coreutils npm && \
     npm install vmw-cli --global && \
@@ -25,7 +24,7 @@ RUN apk add --no-cache bash gawk sed grep bc coreutils npm && \
     cd .. && \
     rm -Rf tkg
 
-FROM ljfranklin/terraform-resource:0.13.5
+FROM ljfranklin/terraform-resource:0.14.3
 LABEL author=cphillipson@pivotal.io
 
 COPY --from=build /usr/local/bin/tkg /usr/local/bin

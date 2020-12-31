@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+## General settings
+
+AZ_CLI_IMAGE="terraform-resource-with-az-cli"
+BBY_IMAGE_NAME="bby"
+CARVEL_IMAGE="terraform-resource-with-carvel"
+TKG_IMAGE="terraform-resource-with-tkg-tmc"
+
+# Container registry credentials
+# Must be set to non-blank values
+CONTAINER_REGISTRY_USERNAME="REPLACE_ME"
+CONTAINER_REGISTRY_PASSWORD="REPLACE_ME"
+CONTAINER_IMAGE_REPO_NAME="$CONTAINER_REGISTRY_USERNAME"
+
+# My VMware credentials
+MY_VMWARE_USERNAME="REPLACE_ME"
+MY_VMWARE_PASSWORD="REPLACE_ME"
+
+TF4K8S_PIPELINE_REPO="https://github.com/pacphi/tf4k8s-pipelines.git"
+TF4K8S_PIPELINE_REPO_BRANCH="one-click"
+
+## Concourse
+
+CONCOURSE_ALIAS="local"
+# If you are running a Docker Compose installation of Concourse do not change the settings below
+CONCOURSE_URL="http://web:8080"
+CONCOURSE_ADMIN_USERNAME="test"
+CONCOURSE_ADMIN_PASSWORD="test"
+CONCOURSE_TEAM="container-images"

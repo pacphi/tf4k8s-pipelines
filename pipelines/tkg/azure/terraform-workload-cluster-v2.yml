@@ -1,0 +1,175 @@
+resource_types:
+- name: abs-resource
+  type: docker-image
+  source:
+    repository: pcfabr/azure-blobstore-resource
+    tag: 0.11.0
+
+resources:
+- name: tkg-management-config
+  type: abs-resource
+  source:
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: s3cr3ts-((uid))
+    versioned_file: ((environment_name))/management-cluster-config.tar.gz
+
+- name: kubeconfig
+  type: abs-resource
+  source:
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: s3cr3ts-((uid))
+    versioned_file: ((environment_name))/.kube/config
+
+- name: tkg-cli
+  type: abs-resource
+  source:
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: binaries-((uid))
+    versioned_file: ((environment_name))/((tkg_cli_gz))
+
+jobs:
+- name: create-workload-cluster
+  plan:
+  - get: tkg-cli
+    trigger: true
+  - get: tkg-management-config
+    trigger: true
+  - task: unpack-management-config
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: 
+          repository: ubuntu
+          tag: 20.04
+      inputs: 
+        - name: tkg-management-config
+      outputs:
+        - name: unpacked-management-config
+      run:
+        path: bash
+        args:
+          - -c
+          - |
+            tar -xvf tkg-management-config/management-cluster-config.tar.gz -C unpacked-management-config
+  - task: create-cluster-and-get-credentials
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: 
+          repository: ubuntu
+          tag: 20.04
+      params:
+        TKG_PLAN: ((tkg_plan))
+        TKG_WORKLOAD_CLUSTER_NAME: ((tkg_workload_cluster_name))
+        TKG_CONTROL_PLANE_NODE_COUNT: ((tkg_control_plane_node_count))
+        TKG_WORKER_NODE_COUNT: ((tkg_worker_node_count))
+        TKG_K8S_VERSION: ((tkg_kubernetes_version))
+      inputs:
+        - name: tkg-cli
+        - name: unpacked-management-config
+      outputs:
+        - name: workload-cluster-config
+      run:
+        path: bash
+        args:
+          - -c
+          - |
+            apt update
+            apt install wget -y
+            cd tkg-cli
+            tar -xzf *.tar.gz
+            for i in $(ls -1 tkg); do
+              chmod +x tkg/$i
+              mv tkg/$i /usr/local/bin/$( echo $i | cut -d'-' -f1)
+            done
+            cd ..
+            KUBECTL_VERSION=$(echo $TKG_K8S_VERSION | sed -e 's/v\(.*\)+vmware\(.*\)/\1/')
+            wget -O kubectl https://storage.googleapis.com/kubernetes-release/release/v$KUBECTL_VERSION/bin/linux/amd64/kubectl
+            chmod +x kubectl
+            mv kubectl /usr/local/bin
+            cd unpacked-management-config
+            cp -a .tkg ~/
+            cp -a .kube-tkg ~/
+            cd ..
+            tkg create cluster $TKG_WORKLOAD_CLUSTER_NAME -p $TKG_PLAN -c $TKG_CONTROL_PLANE_NODE_COUNT -w $TKG_WORKER_NODE_COUNT --kubernetes-version $TKG_K8S_VERSION --v 6
+            tkg get credentials $TKG_WORKLOAD_CLUSTER_NAME --export-file ~/.kube/config --v 6
+            cp ~/.kube/config workload-cluster-config/
+            echo "The ~/.kube/config for $TKG_WORKLOAD_CLUSTER_NAME is:"
+            echo "---"
+            cat ~/.kube/config
+  - put: kubeconfig
+    params:
+      file: workload-cluster-config/config
+
+- name: delete-workload-cluster
+  plan:
+  - get: tkg-cli
+    trigger: false
+  - get: tkg-management-config
+    trigger: false
+  - task: unpack-management-config
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: 
+          repository: ubuntu
+          tag: 20.04
+      inputs: 
+        - name: tkg-management-config
+      outputs:
+        - name: unpacked-management-config
+      run:
+        path: bash
+        args:
+          - -c
+          - |
+            tar -xvf tkg-management-config/management-cluster-config.tar.gz -C unpacked-management-config
+  - task: delete-cluster-and-erase-kubeconfig
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: 
+          repository: ubuntu
+          tag: 20.04
+      params:
+        TKG_WORKLOAD_CLUSTER_NAME: ((tkg_workload_cluster_name))
+      inputs:
+        - name: tkg-cli
+        - name: unpacked-management-config
+      outputs:
+        - name: workload-cluster-config
+      run:
+        path: bash
+        args:
+          - -c
+          - |
+            apt update
+            apt install wget -y
+            cd tkg-cli
+            tar -xzf *.tar.gz
+            for i in $(ls -1 tkg); do
+              chmod +x tkg/$i
+              mv tkg/$i /usr/local/bin/$( echo $i | cut -d'-' -f1)
+            done
+            cd ..
+            KUBECTL_VERSION=$(echo $TKG_K8S_VERSION | sed -e 's/v\(.*\)+vmware\(.*\)/\1/')
+            wget -O kubectl https://storage.googleapis.com/kubernetes-release/release/v$KUBECTL_VERSION/bin/linux/amd64/kubectl
+            chmod +x kubectl
+            mv kubectl /usr/local/bin
+            cd unpacked-management-config
+            cp -a .tkg ~/
+            cp -a .kube-tkg ~/
+            cd ..
+            tkg delete cluster $TKG_WORKLOAD_CLUSTER_NAME --v 6
+            touch ~/.kube/config
+            cp ~/.kube/config workload-cluster-config/
+  - put: kubeconfig
+    params:
+      file: workload-cluster-config/config

@@ -1,0 +1,190 @@
+resource_types:
+- name: terraform
+  type: docker-image
+  source:
+    repository: pacphi/terraform-resource-with-az-cli
+    tag: latest
+
+- name: abs-resource
+  type: docker-image
+  source:
+    repository: pcfabr/azure-blobstore-resource
+    tag: 0.11.0
+
+- name: fly
+  type: docker-image
+  source:
+    repository: troykinsella/concourse-fly-resource
+    tag: 2.0.1
+
+resources:
+# The repo that contains Terraform
+- name: pipeline-repo
+  type: git
+  icon: github
+  source:
+    uri: ((pipeline_repo))
+    branch: ((pipeline_repo_branch))
+
+- name: terraform-state
+  type: terraform
+  source:
+    env_name: ((environment_name))
+    backend_type: azurerm
+    backend_config:
+      storage_account_name: ((storage_account_name))
+      access_key: ((storage_account_key))
+      container_name: tf4k8s-pipelines-state-((uid))
+      key: ((environment_name))/terraform/((azure_storage_bucket_folder))/terraform.tfstate
+
+- name: fly
+  type: fly
+  source:
+    url: ((concourse_url))
+    username: ((concourse_username))
+    password: ((concourse_password))
+    team: ((concourse_team_name))
+    insecure: ((concourse_is_insecure))
+    debug: ((concourse_is_in_debug_mode))
+
+- name: kubeconfig
+  type: abs-resource
+  source:
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: s3cr3ts-((uid))
+    versioned_file: ((environment_name))/.kube/config
+
+- name: terraform-vars
+  type: abs-resource
+  source:
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: tf4k8s-pipelines-config-((uid))
+    versioned_file: ((environment_name))/terraform/((azure_storage_bucket_folder))/terraform.tfvars
+
+- name: pk
+  type: abs-resource
+  source:
+    storage_account_name: ((storage_account_name))
+    storage_account_key: ((storage_account_key))
+    container: s3cr3ts-((uid))
+    versioned_file: ((environment_name))/az_rsa.pub
+
+jobs:
+- name: terraform-plan
+  plan:
+  - get: pipeline-repo
+    trigger: true
+  - get: pk
+    trigger: true
+  - get: terraform-vars
+    trigger: true
+  - put: terraform-state
+    params:
+      terraform_source: pipeline-repo/terraform/((terraform_module))
+      plan_only: true
+      var_files: [terraform-vars/terraform.tfvars]
+  
+
+- name: terraform-apply
+  plan:
+  - get: pipeline-repo
+    trigger: true
+    passed: [terraform-plan]
+  - get: pk
+    trigger: true
+    passed: [terraform-plan]
+  - get: terraform-state
+    trigger: true
+    passed: [terraform-plan]
+  - put: terraform-state
+    params:
+      terraform_source: pipeline-repo/terraform/((terraform_module))
+      plan_run: true
+  
+
+- name: store-kubeconfig
+  plan:
+  - get: terraform-state
+    trigger: true
+    passed: [terraform-apply]
+  - get: kubeconfig
+    trigger: false
+  - task: get-cluster-credentials
+    config:
+      inputs:
+        - name: terraform-state
+        - name: kubeconfig
+      outputs:
+        - name: kubeconfig
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: { repository: dwdraju/alpine-curl-jq }
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          cat terraform-state/metadata | jq -r '.kubeconfig_contents' > kubeconfig/config
+  - put: kubeconfig
+    params:
+      file: kubeconfig/config
+
+- name: smoke-test
+  plan:
+  - get: kubeconfig
+    trigger: true
+    passed: [store-kubeconfig]
+  - task: get-cluster-information
+    config:
+      inputs:
+        - name: kubeconfig
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: { repository: bitnami/kubectl }
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          sleep 10
+          kubectl get nodes -o wide --kubeconfig=kubeconfig/config
+          kubectl get pods -o wide --kubeconfig=kubeconfig/config
+  on_failure:
+    do:
+      - put: fly
+        params:
+          options: trigger-job -j ((current_pipeline_name))/smoke-test
+
+- name: terraform-destroy
+  plan:
+  - get: pipeline-repo
+    trigger: false
+  - get: pk
+    trigger: false
+  - get: terraform-vars
+    trigger: false
+  - get: terraform-state
+    trigger: false
+  - put: terraform-state
+    params:
+      terraform_source: pipeline-repo/terraform/((terraform_module))
+      action: destroy
+      var_files: [terraform-vars/terraform.tfvars]
+    get_params:
+      action: destroy
+
+- name: trigger-next-pipeline-job
+  plan:
+  - get: kubeconfig
+    trigger: true
+    passed: [smoke-test]
+  - put: fly
+    params:
+      options: unpause-pipeline -p ((next_pipeline_name))
+  - put: fly
+    params:
+      options: trigger-job -j ((next_pipeline_name))/((next_plan_name))
