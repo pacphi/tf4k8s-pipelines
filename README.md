@@ -75,6 +75,13 @@ fly login --target <target> --concourse-url https://<concourse_hostname> -u <use
 ```
 > Replace `<target>` with any name (this acts as an alias for the connection details to the Concourse instance).  Also replace `concourse_hostname>` with the hostname of the Concourse instance you wish to target. Lastly, replace `<username>` and `<password>` with valid, authorized credentials to the Concourse instance team. 
 
+### Decision time
+
+Your choice of two paths from here.  Continue through the sections and subsections below in order or take a shortcut.
+
+What's the shortcut?  Visit the [one-click install for tas4k8s](bin/tas4k8s) to learn more.
+
+
 ### Build and push the terraform-resource-with-az-cli image
 
 A Concourse resource based off [ljfranklin/terraform-resource](https://github.com/ljfranklin/terraform-resource#terraform-concourse-resource) that also includes the Azure [CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)

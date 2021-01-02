@@ -7,12 +7,13 @@
 # Prerequisities:
 ## - *nix OS
 ## - Public Internet access
+## - Concourse instance admin credentials and the fly CLI installed
 ## - Cloud provider CLI installed (e.g., aws, az, gcloud, tkg)
-## - Cloud provider account admin credentials
-## - Pre-authenticate with cloud provider account admin credentials
+## - Cloud provider account admin credentials in addition to storage account credentials
+## - Pre-authenticated with cloud provider account admin credentials
 ## - Tanzu Network credentials and API token
+## - If opting for a TKG cluster deployment you must have either pre-downloaded the tkg CLI *.tar.gz package or supply My VMWare credentials 
 ## - docker and docker-compose installed if you want to run a local Concourse instance
-## - Concourse instance is up-and-running
 ## - rclone CLI installed
 ## - Already configured rclone to interact with cloud provider storage API
 
