@@ -1,4 +1,4 @@
-FROM ljfranklin/terraform-resource:0.14.3
+FROM ljfranklin/terraform-resource:0.14.4
 LABEL author=cphillipson@pivotal.io
 
 COPY dist/ /usr/local/bin

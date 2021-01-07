@@ -3,7 +3,7 @@ FROM alpine:3.12 as build
 ARG vmw_username 
 ARG vmw_password
 
-ENV TMC_VERSION=0.2.0-001dbc95 \
+ENV TMC_VERSION=0.2.0-ba47223d \
     TKG_VERSION=1.2.1-vmware.1 \
     VMWUSER=$vmw_username \
     VMWPASS=$vmw_password
@@ -24,7 +24,7 @@ RUN apk add --no-cache bash gawk sed grep bc coreutils npm && \
     cd .. && \
     rm -Rf tkg
 
-FROM ljfranklin/terraform-resource:0.14.3
+FROM ljfranklin/terraform-resource:0.14.4
 LABEL author=cphillipson@pivotal.io
 
 COPY --from=build /usr/local/bin/tkg /usr/local/bin
