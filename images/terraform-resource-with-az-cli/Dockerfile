@@ -1,4 +1,4 @@
-FROM ljfranklin/terraform-resource:0.14.4
+FROM ljfranklin/terraform-resource:0.14.6
 LABEL author=cphillipson@pivotal.io
 
 RUN apk --no-cache add curl python3 python3-dev py3-pip && \

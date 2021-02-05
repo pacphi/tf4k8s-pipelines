@@ -24,7 +24,7 @@ RUN apk add --no-cache bash gawk sed grep bc coreutils npm && \
     cd .. && \
     rm -Rf tkg
 
-FROM ljfranklin/terraform-resource:0.14.4
+FROM ljfranklin/terraform-resource:0.14.6
 LABEL author=cphillipson@pivotal.io
 
 COPY --from=build /usr/local/bin/tkg /usr/local/bin
