@@ -23,10 +23,10 @@ data "template_file" "certs_var_file" {
   template = file("${path.module}/certs-and-keys.tpl")
   
   vars = {
-    system_fullchain_certificate = trim(base64encode(module.system_cert.cert_full_chain), "\n")
-    system_private_key = trim(base64encode(module.system_cert.cert_key), "\n")
-    workloads_fullchain_certificate = trim(base64encode(module.workloads_cert.cert_full_chain), "\n")
-    workloads_private_key = trim(base64encode(module.workloads_cert.cert_key), "\n")
+    system_certificate_full_chain = indent(4, module.system_cert.cert_full_chain)
+    system_cert_key = indent(4, module.system_cert.cert_key)
+    workloads_certificate_full_chain = indent(4, module.workloads_cert.cert_full_chain)
+    workloads_cert_key = indent(4, module.workloads_cert.cert_key)
   }
 }
 
