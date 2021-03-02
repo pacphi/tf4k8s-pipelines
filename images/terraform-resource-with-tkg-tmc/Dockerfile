@@ -3,7 +3,7 @@ FROM alpine:3.12 as build
 ARG vmw_username 
 ARG vmw_password
 
-ENV TMC_VERSION=0.2.0-ba47223d \
+ENV TMC_VERSION=0.2.0-33567c83 \
     TKG_VERSION=1.2.1-vmware.1 \
     VMWUSER=$vmw_username \
     VMWPASS=$vmw_password
