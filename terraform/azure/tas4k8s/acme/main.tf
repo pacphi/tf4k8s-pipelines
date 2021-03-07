@@ -87,18 +87,22 @@ variable "storage_account_name" {
 
 variable "client_id" {
   description = "Azure Service Principal appId"
+  sensitive = true
 }
 
 variable "client_secret" {
   description = "Azure Service Principal password"
+  sensitive = true
 }
 
 variable "subscription_id" {
   description = "Azure Subscription id"
+  sensitive = true
 }
 
 variable "tenant_id" {
   description = "Azure Service Principal tenant"
+  sensitive = true
 }
 
 variable "uid" {

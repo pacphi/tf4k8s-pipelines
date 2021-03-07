@@ -44,6 +44,7 @@ resource "google_storage_bucket_object" "certs_var_file" {
 
 variable "project" {
   description = "A Google Cloud Platform project id"
+  sensitive = true
 }
 
 variable "email" {

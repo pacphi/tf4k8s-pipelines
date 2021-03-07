@@ -40,10 +40,12 @@ variable "repository_prefix" {
 variable "registry_username" {
   description = "Container image/artifact registry/repository username"
   default = "admin"
+  sensitive = true
 }
 
 variable "registry_password" {
   description = "Container image/artifact registry/repository password"
+  sensitive = true
 }
 
 variable "pivnet_registry_hostname" {
@@ -53,10 +55,12 @@ variable "pivnet_registry_hostname" {
 
 variable "pivnet_username" {
   description = "Tanzu Network image/artifact registry/repository username"
+  sensitive = true
 }
 
 variable "pivnet_password" {
   description = "Tanzu Network image/artifact registry/repository password"
+  sensitive = true
 }
 
 variable "remove_resource_requirements" {
