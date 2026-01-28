@@ -1,4 +1,4 @@
-FROM alpine:3.22.1 
+FROM alpine:3.23.2 
 LABEL author=cphillipson@pivotal.io
 
 ENV BOSH_VERSION=6.4.1 \
